@@ -1,0 +1,15 @@
+*.max
+
+node_modules/
+app/
+appv0/
+build/
+dist/
+doc/
+message-chat/
+rms-mvp/
+tcp-server/
+voice-chat/
+
+.DS_Store
+Thumbs.db
