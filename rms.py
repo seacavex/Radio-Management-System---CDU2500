@@ -8,7 +8,7 @@ active_area = 1                 # Área ativa (1-6) - qual rádio está selecion
 current_level = 0              # Nível de interface (0-off, 1-main freq, 2-advance, 4-teste, 5-não desenvolvida)
 current_radio = 1               # Rádio selecionado
 current_page = 1                # Página atual
-pressed_side_btn = 0            #
+pressed_side_btn = 0            # Click mouse direito ("clique longo")
 transponder_indicator = 0
 zeroise_value = False           # Estado especial 1
 emergency_value = False         # Estado especial 2
@@ -16,13 +16,15 @@ start_time = None
 timer = None
 boot_screen_active = False      # Controla se a tela de boot está ativa
 boot_start_time = None          # Armazena quando a tela de boot foi mostrada
-delayinit = 5
+delayinit = 2
 
 # Manual constants
 # Dimensões da tela
-x_screen = 286
+x_screen = 287
 y_screen = 169
-screen_width = 457
+# screen_width = 457
+# screen_height = 459
+screen_width = 454
 screen_height = 459
 padx_screen = 2
 pady_screen = 4
@@ -49,49 +51,62 @@ def log():
 
 # Reset all variables to default values
 def set_default():
-    uhf_active.set("399.97")
-    uhf_preset.set("399.97")
-    hf_active.set("2.000")
-    hf_preset.set("2.000")
+    uhf_active.set("120.15")
+    uhf_preset.set("118.15")
+    hf_active.set("03.601")
+    hf_preset.set("02.000")
     atc_active.set("STBY")
-    atc_preset.set("6000")
-    vhf_active.set("136.975")
-    vhf_preset.set("136.975")
-    vor_active.set("108.00")
-    vor_preset.set("108.00")
-    adf_active.set("190.0")
-    adf_preset.set("190.0")
+    atc_preset.set("2365")
+    vhf_active.set("139.50")
+    vhf_preset.set("136.00")
+    vor_active.set("112.60")
+    vor_preset.set("115.40")
+    adf_active.set("430.0")
+    adf_preset.set("275.0")
 
 # Set all variables to emergency values
 def set_emergency_values():
-    uhf_active.set("399.97")
-    uhf_preset.set("399.97")
-    hf_active.set("2.000")
-    hf_preset.set("2.000")
+    uhf_active.set("243.00")
+    uhf_preset.set("EMER")
+    hf_active.set("EMER2")
+    hf_preset.set("EMER1")
     atc_active.set("7700")
     atc_preset.set("EMER")
-    vhf_active.set("136.975")
-    vhf_preset.set("136.975")
-    vor_active.set("108.00")
-    vor_preset.set("108.00")
-    adf_active.set("190.0")
-    adf_preset.set("190.0")
+    vhf_active.set("121.50")
+    vhf_preset.set("EMER")
+    vor_active.set("112.60")
+    vor_preset.set("115.40")
+    adf_active.set("430.0")
+    adf_preset.set("275.0")
+
+    
+# Reset all variables to default values
+def set_zeroize():
+    uhf_active.set("000.00")
+    uhf_preset.set("000.00")
+    hf_active.set("00.000")
+    hf_preset.set("00.000")
+    atc_active.set("0000")
+    atc_preset.set("0000")
+    vhf_active.set("000.00")
+    vhf_preset.set("000.00")
+    vor_active.set("000.00")
+    vor_preset.set("000.00")
+    adf_active.set("000.0")
+    adf_preset.set("000.0")
 
 # Function to handle the screen in case the zeroise pin is set
 def zeroise():
     global zeroise_value
     zeroise_value = not zeroise_value
+
+    print(f"Zerioze = {zeroise_value}")
     
     if zeroise_value:
         # Reset all variables to default values
-        set_default()
+        set_zeroize()
     else:
-        uhf_preset.set(uhf_active.get())
-        hf_preset.set(hf_active.get())
-        atc_preset.set("7230")
-        vhf_preset.set(vhf_active.get())
-        vor_preset.set(vor_active.get())
-        adf_preset.set(adf_active.get())
+        set_default()
 
     update_pino_button_image(zeroise_value, zeroise_button)
 
@@ -101,22 +116,12 @@ def emergency():
     emergency_value = not emergency_value
 
     if emergency_value:
-        uhf_active.set("243.00")
-        uhf_preset.set("EMER")
-        hf_active.set("2.182")
-        hf_preset.set("EMER")
+        set_emergency_values()
         main_area_3.turn_label_on(main_area_3.stby_label) # Turn label on in case it was off
-        atc_active.set("7700")
-        atc_preset.set("EMER")
-        vhf_active.set("121.500")
-        vhf_preset.set("EMER")
+
     else:
-        uhf_preset.set(uhf_active.get())
-        hf_preset.set(hf_active.get())
-        atc_active.set("STBY")
+        set_default()
         main_area_3.turn_label_on(main_area_3.stby_label) # Turn label on in case it was off
-        atc_preset.set("7231")
-        vhf_preset.set(vhf_active.get())
 
     update_pino_button_image(emergency_value, emergency_button)
 
@@ -166,19 +171,19 @@ def get_transponder_indicator():
     
     if transponder_indicator == 1:
         forget_transponder_indicators()
-        transponder_canva_1.place(x=241, y=360)
+        transponder_canva_1.place(x=363, y=531)
 
     if transponder_indicator == 2:
         forget_transponder_indicators()
-        transponder_canva_2.place(x=256, y=360)
+        transponder_canva_2.place(x=382, y=531)
 
     if transponder_indicator == 3:
         forget_transponder_indicators()
-        transponder_canva_3.place(x=269, y=360)
+        transponder_canva_3.place(x=402, y=531)
 
     if transponder_indicator == 4:
         forget_transponder_indicators()
-        transponder_canva_4.place(x=283, y=360)
+        transponder_canva_4.place(x=421, y=531)
 
 # Function to clear the page indicator image
 # This function must always be called before placing a new page icon
@@ -197,7 +202,8 @@ def forget_page_icon():
 # It already places the icons at the correct position
 def place_page_icon(widget):
     forget_page_icon()
-    widget.place(x=420, y=370)
+    print("icone adicionado")
+    widget.place(x=690, y=565)
 
 # Function to update the image indicator of the page based of the values of the global variables
 def update_page_icon():
@@ -230,6 +236,7 @@ def update_screen():
     # Logic to select the correct screen based on global variables  
     global active_area, current_level, current_radio, current_page
     print("Global: {}, {}, {}, {}, ".format(active_area, current_level, current_radio, current_page))
+
  
     if current_level not in {0, 1, 2, 3, 4, 5}:
         print(f"Erro ao mudar de nível entre as páginas na função update_screen(). Current_level = {current_level}")
@@ -271,7 +278,7 @@ def update_screen():
         activate_advanced(1)
 
         advanced_area_2_title.title.config(text=uhf_sql_title.get())
-        # advanced_area_2_body.option_labels[0].config(text=uhf_sql_selected.get())
+        advanced_area_2_body.option_labels[0].config(text=uhf_sql_selected.get())
         # advanced_area_2_arrow.arrow_labels[uhf_sql_arrow_value.get()].config(text='>')
     else:
         print(f"Else statement. Area: {active_area}, Level: {current_level}, Radio: {current_radio}, Page: {current_page}")
@@ -471,7 +478,7 @@ def activate_main(main_area_number):
         get_transponder_indicator()
 
 def deactivate_advanced_areas():
-    areas = [ advanced_area_1, advanced_area_2, advanced_area_3, advanced_area_4, advanced_area_5, advanced_area_6 ]
+    areas = [ advanced_area_1_1, advanced_area_1_2, advanced_area_1_3, advanced_area_1_4, advanced_area_1_5, advanced_area_1_6 ]
 
     # Set the background color of all areas to gray
     for area in areas:
@@ -481,7 +488,7 @@ def deactivate_advanced_areas():
 def activate_advanced(advanced_area_number):
     global active_area
 
-    areas = [ advanced_area_1, advanced_area_2, advanced_area_3, advanced_area_4, advanced_area_5, advanced_area_6 ]
+    areas = [ advanced_area_1_1, advanced_area_1_2, advanced_area_1_3, advanced_area_1_4, advanced_area_1_5, advanced_area_1_6 ]
 
     # Deactivate all areas first to ensure only one area is active at a time
     deactivate_advanced_areas()
@@ -717,6 +724,7 @@ def key_up4_push():
     
 # Function do switch the value between active and preset(stby) values
 def switch_active_and_preset(active_vars, stby_vars, idx):
+    print("In switch active preset")
     current_value = active_vars[idx].get()
     standby_value = stby_vars[idx].get()
 
@@ -925,9 +933,11 @@ class Black_btn:
 
 # Área principal que mostra frequencia Ativa/Standby
 class Main_box(Frame):
-    def __init__(self, root, ind, cod, active, stby, bg):
+    def __init__(self, root, ind, cod0, cod1, cod2, rspan, ncol, active, stby, bg):
         super().__init__(root, padx=padx_area, pady=pady_area, bg=bg, width=main_area_width, height=main_area_height)
         self.grid_propagate(False)
+        self.ncol = ncol
+
         self.active_label = Label(
             self,
             textvariable=active,
@@ -946,15 +956,31 @@ class Main_box(Frame):
         self.ind_label = Label(
             self,
             textvariable=ind,
-            font=stby_font,
+            font=ind_font,
             background="black",
             fg="white",
         )
         
-        self.cod_label = Label(
+        self.cod0_label = Label(
             self,
-            textvariable=cod,
-            font=stby_font,
+            textvariable=cod0,
+            font=cod_font,
+            background="black",
+            fg="white",
+        )
+        
+        self.cod1_label = Label(
+            self,
+            textvariable=cod1,
+            font=cod_font,
+            background="black",
+            fg="white",
+        )
+        
+        self.cod2_label = Label(
+            self,
+            textvariable=cod2,
+            font=cod_font,
             background="black",
             fg="white",
         )
@@ -963,10 +989,20 @@ class Main_box(Frame):
         self.grid_columnconfigure(2, weight=1, uniform='coluna')
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=1)
-        self.ind_label.grid(row=0, column=0, rowspan=2, sticky='nsew')
+        self.grid_rowconfigure(2, weight=1)
         self.active_label.grid(row=0, column=1, sticky='nsew')
-        self.stby_label.grid(row=1, column=1, sticky='nsew')
-        self.cod_label.grid(row=0, column=2, rowspan=2, sticky='nsew')
+        Label(self, bg='black').grid(row=1, column=1, sticky='nsew')
+        self.stby_label.grid(row=2, column=1, sticky='nsew')
+        if self.ncol == 0:
+            self.ind_label.grid(row=0, column=0, rowspan=3, sticky='nsew')
+            self.cod0_label.grid(row=0, column=2, rowspan=rspan, sticky='nsew')
+            self.cod1_label.grid(row=1, column=2, sticky='nsew')
+            self.cod2_label.grid(row=2, column=2, sticky='nsew')
+        elif self.ncol == 1:
+            self.cod0_label.grid(row=0, column=0, rowspan=rspan, sticky='nsew')
+            self.cod1_label.grid(row=1, column=0, sticky='nsew')
+            self.cod2_label.grid(row=2, column=0, sticky='nsew')
+            self.ind_label.grid(row=0, column=2, rowspan=3, sticky='nsew')
         self.grid(sticky='nsew')
 
     def turn_label_off(self, label):
@@ -979,15 +1015,22 @@ class Main_box(Frame):
             label.config(fg="white")  # Standby label color
         elif label == self.ind_label:
             label.config(fg="white")  # Standby label color
-        elif label == self.cod_label:
-            label.config(fg="white")  # Standby label color
+
+    def set_label_cod(self, cod0, cod1, cod2, color, anchor):
+        self.cod0_label.config(textvariable=StringVar(value=cod0))
+        self.cod0_label.config(fg=color)
+        self.cod1_label.config(textvariable=StringVar(value=cod1))
+        self.cod1_label.config(fg=color)
+        self.cod2_label.config(textvariable=StringVar(value=cod2))
+        self.cod2_label.config(fg=color)
+        self.cod0_label.config(anchor=anchor)
 
     def update_labels(self):
         # Update labels in the area
         self.active_label.update()
         self.stby_label.update()
         self.ind_label.update()
-        self.cod_label.update()
+        self.cod1_label.update()
 
 class Test_big_box(Frame):
     def __init__(self, root, title, left_text="", right_text=""):
@@ -1059,30 +1102,45 @@ class Test_small_box(Frame):
         self.description_label.grid(row=0, column=1, sticky='wns')
 
 class Advanced_sub_box_title(Frame):
-    def __init__(self, root, title, subtitle, side):
+    def __init__(self, root, cod1, cod2, cod3):
         super().__init__(root, height=main_area_height, bg="black")
         self.grid_propagate(False)
-        # Determine the sticky option based on the side parameter
-        sticky_option = 'nse' if side == "right" else 'nsw'
-        self.title = Label(
+        self.cod1 = Label(
             self,
-            textvariable=title,
+            textvariable=cod1,
             font=stby_font,
             background="black",
             fg="white"
         )
-        self.subtitle = Label(
+        self.cod2 = Label(
             self,   
-            textvariable=subtitle,
+            textvariable=cod2,
+            font=stby_font,
+            background="black",
+            fg="cyan"
+        )
+        self.cod3 = Label(
+            self,   
+            textvariable=cod3,
+            font=stby_font,
+            background="black",
+            fg="cyan"
+        )
+        self.cod4 = Label(
+            self,   
+            textvariable=cod2,
             font=stby_font,
             background="black",
             fg="cyan"
         )
         self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight= 1)
         self.grid_rowconfigure(1, weight= 1)
-        self.title.grid(row=0, column=0, sticky=sticky_option)
-        self.subtitle.grid(row=1, column=0, sticky=sticky_option)
+        self.cod1.grid(row=0, column=0)
+        self.cod2.grid(row=1, column=0)
+        self.cod3.grid(row=0, column=1)
+        self.cod4.grid(row=1, column=1)
 
 
 class Advanced_sub_box_arrow(Frame):
@@ -1173,13 +1231,76 @@ class Advanced_sub_box_body(Frame):
         
 # Área avançada com títulos, setas e opções        
 class Advanced_box(Frame):
-    def __init__(self, root, bg, left_weight, middle_weight, right_weight):
+    def __init__(self, root, cod0, cod1, cod2, cod3, rspan0, rspan1, stk0, stk1, bg, ncol):
         super().__init__(root, padx=padx_area, pady=pady_area, bg=bg, width=main_area_width, height=main_area_height)
-        self.grid_propagate(False) 
-        self.grid_columnconfigure(0, weight=left_weight)
-        self.grid_columnconfigure(1, weight=middle_weight)
-        self.grid_columnconfigure(2, weight=right_weight)
+        self.grid_propagate(False)
+
+        self.cod0_label = Label(
+            self,
+            textvariable=cod0,
+            font=active_font,
+            background="black",
+            fg="white",
+            anchor="w"
+        )
+
+        self.cod1_label = Label(
+            self,
+            textvariable=cod1,
+            font=stby_font,
+            background="black",
+            fg="white",
+            anchor="w"
+        )
+
+        self.cod2_label = Label(
+            self,
+            textvariable=cod2,
+            font=cod_font,
+            background="black",
+            fg="white",
+            anchor="center"
+        )
+
+        self.cod3_label = Label(
+            self,
+            textvariable=cod3,
+            font=cod_font,
+            background="black",
+            fg="white",
+            anchor="center"
+        )
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        if ncol == 0:
+            if rspan0 == 2:
+                self.cod0_label.grid(row=0, column=0, rowspan=rspan0,  sticky=stk0)
+            else:
+                self.cod0_label.grid(row=0, column=0, sticky=stk0)
+                self.cod1_label.grid(row=1, column=0, sticky=stk0)
+            
+            if rspan1 == 2:
+                self.cod2_label.grid(row=0, column=1, rowspan=rspan1, sticky=stk1)
+            else:
+                self.cod2_label.grid(row=0, column=1, sticky=stk1)
+                self.cod3_label.grid(row=1, column=1, sticky=stk1)
+        else:
+            if rspan0 == 2:
+                self.cod0_label.grid(row=0, column=1, rowspan=rspan0,  sticky=stk0)
+            else:
+                self.cod0_label.grid(row=0, column=1, sticky=stk0)
+                self.cod1_label.grid(row=1, column=1, sticky=stk0)
+            
+            if rspan1 == 2:
+                self.cod2_label.grid(row=0, column=0, rowspan=rspan1, sticky=stk1)
+            else:
+                self.cod2_label.grid(row=0, column=0, sticky=stk1)
+                self.cod3_label.grid(row=1, column=0, sticky=stk1)
+
         self.grid(sticky='nsew')
 
     def update_labels(self):
@@ -1349,12 +1470,14 @@ root.resizable(False, False)
 # Define fonts
 active_font = Font(
     family='Miriam Mono CLM',
-    size=18,
+    size=26,
+    weight='bold'
 )
 
 stby_font = Font(
     family='Miriam Mono CLM',
-    size=16,
+    size=24,
+    weight='bold'
 )
 
 option_font = Font(
@@ -1372,6 +1495,18 @@ test_body_font = Font(
     size=10,
 )
 
+ind_font = Font(
+    family='Miriam Mono CLM',
+    size=16,
+    weight='bold'
+)
+
+cod_font = Font(
+    family='Miriam Mono CLM',
+    size=16,
+    weight='bold'
+)
+
 # Load image
 # rms_image = ImageTk.PhotoImage(Image.open("Fundo_completo_11.jpeg"))    # Desenho
 rms_image = ImageTk.PhotoImage(Image.open("imagens/Moldura_fundo.png"))   # Textura real
@@ -1381,21 +1516,21 @@ rms_label.pack()
 # Define button images
 primary_btn_img = PhotoImage(file="imagens/btn_generico_80x52.png")
 primary_btn_pressed_img = PhotoImage(file="bt_ativo.png")
-atc_btn_img = PhotoImage(file="bt_atc.png")
-ch_btn_img = PhotoImage(file="bt_ch.png")
-idt_btn_img = PhotoImage(file="bt_idt.png")
-pge_btn_img = PhotoImage(file="bt_pge.png")
-seta_btn_img = PhotoImage(file="bt_quadrado_riscado.png")
-key_up4_btn_img = PhotoImage(file="bt_in_out.png")
-triangulo_02_btn_img = PhotoImage(file="bt_tri.png")
-triangulo_01_btn_img = PhotoImage(file="bt_tri.png")
+atc_btn_img = PhotoImage(file="imagens/bt_atc.png")
+ch_btn_img = PhotoImage(file="imagens/bt_ch.png")
+idt_btn_img = PhotoImage(file="imagens/bt_idt.png")
+pge_btn_img = PhotoImage(file="imagens/bt_pge.png")
+seta_btn_img = PhotoImage(file="imagens/bt_quadrado_riscado.png")
+key_up4_btn_img = PhotoImage(file="imagens/bt_in_out.png")
+triangulo_02_btn_img = PhotoImage(file="imagens/bt_tri.png")
+triangulo_01_btn_img = PhotoImage(file="imagens/bt_tri.png")
 freq_img = PhotoImage(file="bt_freq2.png")
 on_btn_img = PhotoImage(file="imagens/bt_btc_on.png")
 off_btn_img = PhotoImage(file="imagens/bt_btc_off.png")
-pino_left_img = PhotoImage(file="toggle_esq.png")
-pino_right_img = PhotoImage(file="toggle.png")
-plus = PhotoImage(file="seta_horario.png")
-minus = PhotoImage(file="seta_antihorario.png")
+pino_left_img = PhotoImage(file="imagens/toggle_esq.png")
+pino_right_img = PhotoImage(file="imagens/toggle_dir.png")
+plus = PhotoImage(file="imagens/seta_horario.png")
+minus = PhotoImage(file="imagens/seta_antihorario.png")
 page_1_2 = PhotoImage(file="page_1_2.png")
 page_2_2 = PhotoImage(file="page_2_2.png")
 page_1_3 = PhotoImage(file="page_1_3.png")
@@ -1493,31 +1628,65 @@ var_advanced_adf_option1 = StringVar(value="")
 var_advanced_adf_option2 = StringVar(value="")
 var_advanced_adf_option3 = StringVar(value="")
 
-
+#------------ UHF -----------------------------
 uhf_ind = StringVar(value="V\n/\nU")
-uhf_cod = StringVar(value="COD")
-uhf_active = StringVar(value="399.97")
-uhf_preset = StringVar(value="299.97")
+uhf_active = StringVar(value="120.15")
+uhf_preset = StringVar(value="118.15")
+uhf_cod0 = StringVar(value="COD")
+uhf_cod1 = StringVar(value="COD")
+uhf_cod2 = StringVar(value="COD")
+#---------- UHF ADVANCED -----------------------
+uhf_advanced_2_cod0 = StringVar(value="SQL")
+uhf_advanced_2_cod1 = StringVar(value="HI")
+uhf_advanced_2_cod2 = StringVar(value="grad")
+uhf_advanced_2_cod3 = StringVar(value="")
+uhf_advanced_3_cod0 = StringVar(value="MODE")
+uhf_advanced_3_cod1 = StringVar(value="T/R")
+uhf_advanced_3_cod2 = StringVar(value="\u25B6TR\n\u0020TR+G\n\u0020243\n\u0020121")
+uhf_advanced_3_cod3 = StringVar(value="")
+uhf_advanced_4_cod0 = StringVar(value="")
+uhf_advanced_4_cod1 = StringVar(value="")
+uhf_advanced_4_cod2 = StringVar(value="AJ")
+uhf_advanced_4_cod3 = StringVar(value="OFF")
+uhf_advanced_5_cod0 = StringVar(value="")
+uhf_advanced_5_cod1 = StringVar(value="")
+uhf_advanced_5_cod2 = StringVar(value="MOD")
+uhf_advanced_5_cod3 = StringVar(value="AM")
+uhf_advanced_6_cod0 = StringVar(value="OFF\u25B6\nCST\u0020\nSHIP\u0020")
+uhf_advanced_6_cod1 = StringVar(value="")
+uhf_advanced_6_cod2 = StringVar(value="MAR")
+uhf_advanced_6_cod3 = StringVar(value="OFF")
+#------------------------------------------------
 hf_ind = StringVar(value="H\nF")
-hf_cod = StringVar(value="COD")
-hf_active = StringVar(value="2.000")
-hf_preset = StringVar(value="3.000")
+hf_cod0 = StringVar(value="COD")
+hf_cod1 = StringVar(value="COD")
+hf_cod2 = StringVar(value="COD")
+hf_active = StringVar(value="03.601")
+hf_preset = StringVar(value="02.000")
 atc_ind = StringVar(value="A\nT\nC")
-atc_cod = StringVar(value="COD")
+atc_cod0 = StringVar(value="ALT")
+atc_cod1 = StringVar(value="ALT")
+atc_cod2 = StringVar(value="ALT")
 atc_active = StringVar(value="STBY")
-atc_preset = StringVar(value="7000")
+atc_preset = StringVar(value="2365")
 vhf_ind = StringVar(value="V\nH\nF")
-vhf_cod = StringVar(value="COD")
-vhf_active = StringVar(value="136.975")  
-vhf_preset = StringVar(value="119.975")
+vhf_cod0 = StringVar(value="COD")
+vhf_cod1 = StringVar(value="COD")
+vhf_cod2 = StringVar(value="COD")
+vhf_active = StringVar(value="139.50")  
+vhf_preset = StringVar(value="136.00")
 vor_ind = StringVar(value="V\n/\nL")
-vor_cod = StringVar(value="COD")
-vor_active = StringVar(value="108.00")
-vor_preset = StringVar(value="168.00")
+vor_cod0 = StringVar(value="COD")
+vor_cod1 = StringVar(value="COD")
+vor_cod2 = StringVar(value="COD")
+vor_active = StringVar(value="112.60")
+vor_preset = StringVar(value="115.40")
 adf_ind = StringVar(value="A\nD\nF")
-adf_cod = StringVar(value="COD")
-adf_active = StringVar(value="190.0")
-adf_preset = StringVar(value="180.0") 
+adf_cod0 = StringVar(value="COD")
+adf_cod1 = StringVar(value="COD")
+adf_cod2 = StringVar(value="COD")
+adf_active = StringVar(value="430.0")
+adf_preset = StringVar(value="275.0") 
 
 uhf_sql_arrow_position = IntVar(value=0)
 uhf_mode_position = IntVar(value=0)
@@ -1642,36 +1811,44 @@ test_page.rowconfigure((0, 8, 9), weight=2)
 test_page.rowconfigure((1, 2, 3, 4, 5, 6, 7), weight=1)
 
 
-# Define areas
-main_area_1 = Main_box(main_page, uhf_ind, uhf_cod, uhf_active, uhf_preset, "gray")
-main_area_2 = Main_box(main_page, hf_ind, hf_cod, hf_active, hf_preset, "gray")
-main_area_3 = Main_box(main_page, atc_ind, atc_cod, atc_active, atc_preset, "gray")
-main_area_4 = Main_box(main_page, vhf_cod, vhf_ind, vhf_active, vhf_preset, "gray")
-main_area_5 = Main_box(main_page, vor_cod, vor_ind, vor_active, vor_preset, "gray")
-main_area_6 = Main_box(main_page, adf_cod, adf_ind, adf_active, adf_preset, "gray")
+# Define areas Main_box(self, root, ind, cod0, cod1, cod2, rspan, ncol, active, stby, bg)
+# set_label_cod(self, cod0, cod1, cod2, color, anchor)
+main_area_1 = Main_box(main_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
+main_area_1.set_label_cod("", "", "PT", "white", "s")
+main_area_2 = Main_box(main_page, hf_ind, hf_cod0, hf_cod1, hf_cod2, 1, 0, hf_active, hf_preset, "gray")
+main_area_2.set_label_cod("", "", "", "white", "s")
+main_area_3 = Main_box(main_page, atc_ind, atc_cod0, atc_cod1, atc_cod2, 1, 0, atc_active, atc_preset, "gray")
+main_area_3.set_label_cod("", "ALT", "", "orange", "center")
+main_area_4 = Main_box(main_page, vhf_ind, vhf_cod0, vhf_cod1, vhf_cod2, 1, 1, vhf_active, vhf_preset, "gray")
+main_area_4.set_label_cod("", "", "", "white", "s")
+main_area_5 = Main_box(main_page, vor_ind, vor_cod0, vor_cod1, vor_cod2, 1, 1, vor_active, vor_preset, "gray")
+main_area_5.set_label_cod("", "", "", "white", "s")
+main_area_6 = Main_box(main_page, adf_ind, adf_cod0, adf_cod1, adf_cod2, 1, 1, adf_active, adf_preset, "gray")
+main_area_6.set_label_cod("", "", "", "white", "s")
 
-advanced_area_1 = Main_box(advanced_page, uhf_cod, uhf_ind, var_advanced_active, var_advanced_preset, "gray")
-advanced_area_2 = Advanced_box(advanced_page, "gray", 9, 1, 4)
-advanced_area_3 = Advanced_box(advanced_page, "gray", 9, 1, 4)
-advanced_area_4 = Advanced_box(advanced_page, "gray", 4, 1, 9)
-advanced_area_5 = Advanced_box(advanced_page, "gray", 4, 1, 9)
-advanced_area_6 = Advanced_box(advanced_page, "gray", 4, 1, 9)
+advanced_area_1_1 = Main_box(advanced_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
+advanced_area_1_1.set_label_cod("", "", "PT", "white", "s")
+advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 1, 'nsew', 'nsew', "gray", 0)
+advanced_area_1_3 = Advanced_box(advanced_page, uhf_advanced_3_cod0, uhf_advanced_3_cod1, uhf_advanced_3_cod2, uhf_advanced_3_cod3,  1, 1, 'nsew', 'nsew', "gray", 0)
+advanced_area_1_4 = Advanced_box(advanced_page, uhf_advanced_4_cod2, uhf_advanced_4_cod3, uhf_advanced_4_cod0, uhf_advanced_4_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
+advanced_area_1_5 = Advanced_box(advanced_page, uhf_advanced_5_cod2, uhf_advanced_5_cod3, uhf_advanced_5_cod0, uhf_advanced_5_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
+advanced_area_1_6 = Advanced_box(advanced_page, uhf_advanced_6_cod2, uhf_advanced_6_cod3, uhf_advanced_6_cod0, uhf_advanced_6_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
 
-advanced_area_2_title = Advanced_sub_box_title(advanced_area_2, var_advanced_hf_title, var_advanced_hf_selected, "left")
-advanced_area_2_arrow = Advanced_sub_box_arrow(advanced_area_2, "left", uhf_sql_arrow_position)
-advanced_area_2_body = Advanced_sub_box_body(advanced_area_2, "left", var_advanced_hf_option0, var_advanced_hf_option1, var_advanced_hf_option2, var_advanced_hf_option3)
-advanced_area_3_title = Advanced_sub_box_title(advanced_area_3, var_advanced_atc_title, var_advanced_atc_selected, "left")
-advanced_area_3_arrow = Advanced_sub_box_arrow(advanced_area_3, "left", uhf_aj_arrow_position)
-advanced_area_3_body = Advanced_sub_box_body(advanced_area_3, "left", var_advanced_atc_option0, var_advanced_atc_option1, var_advanced_atc_option2, var_advanced_atc_option3)
-advanced_area_4_title = Advanced_sub_box_title(advanced_area_4, var_advanced_vhf_title, var_advanced_vhf_selected, "right")
-advanced_area_4_arrow = Advanced_sub_box_arrow(advanced_area_4, "right", uhf_mod_arrow_position)
-advanced_area_4_body = Advanced_sub_box_body(advanced_area_4, "right", var_advanced_vhf_option0, var_advanced_vhf_option1, var_advanced_vhf_option2, var_advanced_vhf_option3)
-advanced_area_5_title = Advanced_sub_box_title(advanced_area_5, var_advanced_vor_title, var_advanced_vor_selected, "right")
-advanced_area_6_arrow = Advanced_sub_box_arrow(advanced_area_6, "right", uhf_mode_position)
-advanced_area_5_arrow = Advanced_sub_box_arrow(advanced_area_5, "right", ufh_mar_arrow_position)
-advanced_area_5_body = Advanced_sub_box_body(advanced_area_5, "right", var_advanced_vor_option0, var_advanced_vor_option1, var_advanced_vor_option2, var_advanced_vor_option3)
-advanced_area_6_title = Advanced_sub_box_title(advanced_area_6, var_advanced_adf_title, var_advanced_adf_selected, "right")
-advanced_area_6_body = Advanced_sub_box_body(advanced_area_6, "right", var_advanced_adf_option0, var_advanced_adf_option1, var_advanced_adf_option2, var_advanced_adf_option3)
+# advanced_area_2_title = Advanced_sub_box_title(advanced_area_1_2, var_advanced_hf_title, var_advanced_hf_selected, "left")
+# advanced_area_2_arrow = Advanced_sub_box_arrow(advanced_area_1_2, "left", uhf_sql_arrow_position)
+# advanced_area_2_body = Advanced_sub_box_body(advanced_area_1_2, "left", var_advanced_hf_option0, var_advanced_hf_option1, var_advanced_hf_option2, var_advanced_hf_option3)
+advanced_area_3_title = Advanced_sub_box_title(advanced_area_1_3, var_advanced_atc_title, var_advanced_atc_selected, "left")
+advanced_area_3_arrow = Advanced_sub_box_arrow(advanced_area_1_3, "left", uhf_aj_arrow_position)
+advanced_area_3_body = Advanced_sub_box_body(advanced_area_1_3, "left", var_advanced_atc_option0, var_advanced_atc_option1, var_advanced_atc_option2, var_advanced_atc_option3)
+advanced_area_4_title = Advanced_sub_box_title(advanced_area_1_4, var_advanced_vhf_title, var_advanced_vhf_selected, "right")
+advanced_area_4_arrow = Advanced_sub_box_arrow(advanced_area_1_4, "right", uhf_mod_arrow_position)
+advanced_area_4_body = Advanced_sub_box_body(advanced_area_1_4, "right", var_advanced_vhf_option0, var_advanced_vhf_option1, var_advanced_vhf_option2, var_advanced_vhf_option3)
+advanced_area_5_title = Advanced_sub_box_title(advanced_area_1_5, var_advanced_vor_title, var_advanced_vor_selected, "right")
+advanced_area_6_arrow = Advanced_sub_box_arrow(advanced_area_1_6, "right", uhf_mode_position)
+advanced_area_5_arrow = Advanced_sub_box_arrow(advanced_area_1_5, "right", ufh_mar_arrow_position)
+advanced_area_5_body = Advanced_sub_box_body(advanced_area_1_5, "right", var_advanced_vor_option0, var_advanced_vor_option1, var_advanced_vor_option2, var_advanced_vor_option3)
+advanced_area_6_title = Advanced_sub_box_title(advanced_area_1_6, var_advanced_adf_title, var_advanced_adf_selected, "right")
+advanced_area_6_body = Advanced_sub_box_body(advanced_area_1_6, "right", var_advanced_adf_option0, var_advanced_adf_option1, var_advanced_adf_option2, var_advanced_adf_option3)
 
 test_area_0 = Test_big_box(test_page, test_page_title)
 test_area_1 = Test_small_box(test_page, test_page_atc_title, test_page_atc_description)
@@ -1684,7 +1861,7 @@ test_area_7 = Test_small_box(test_page, test_page_vhf_title, test_page_vhf_descr
 test_area_8 = Test_big_box(test_page, test_page_test, test_page_left_arrow, test_page_right_arrow)
 test_area_9 = Test_big_box(test_page, test_page_valid, test_page_run)
 
-temporary_area_1 = Main_box(temporary_page, page_not_developed_pt1, page_not_developed_pt2, page_not_developed_pt1, page_not_developed_pt2, "cyan")
+temporary_area_1 = Main_box(temporary_page, page_not_developed_pt1, page_not_developed_pt2, page_not_developed_pt1, page_not_developed_pt2,  1, 0, page_not_developed_pt2, page_not_developed_pt2, "cyan")
 
 # Place areas in main_page areas
 main_area_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
@@ -1694,31 +1871,31 @@ main_area_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 main_area_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 main_area_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
 
-advanced_area_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
-advanced_area_2_title.grid(row=0, column=0, sticky='nsew')
-advanced_area_2_arrow.grid(row=0, column=1, sticky='nsew')
-advanced_area_2_body.grid(row=0, column=2, sticky='nsew')
-advanced_area_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+advanced_area_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+# advanced_area_2_title.grid(row=0, column=0, sticky='nsew')
+# advanced_area_2_arrow.grid(row=0, column=1, sticky='nsew')
+# advanced_area_2_body.grid(row=0, column=2, sticky='nsew')
+advanced_area_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
 
-advanced_area_3_title.grid(row=0, column=0, sticky='nsew')
-advanced_area_3_arrow.grid(row=0, column=1, sticky='nsew')
-advanced_area_3_body.grid(row=0, column=2, sticky='nsew')
-advanced_area_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+# advanced_area_3_title.grid(row=0, column=0, sticky='nsew')
+# advanced_area_3_arrow.grid(row=0, column=1, sticky='nsew')
+# advanced_area_3_body.grid(row=0, column=2, sticky='nsew')
+advanced_area_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
 
-advanced_area_4_title.grid(row=0, column=2, sticky='nsew')
-advanced_area_4_arrow.grid(row=0, column=1, sticky='nsew')
-advanced_area_4_body.grid(row=0, column=0, sticky='nsew')
-advanced_area_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+# advanced_area_4_title.grid(row=0, column=2, sticky='nsew')
+# advanced_area_4_arrow.grid(row=0, column=1, sticky='nsew')
+# advanced_area_4_body.grid(row=0, column=0, sticky='nsew')
+advanced_area_1_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 
-advanced_area_5_title.grid(row=0, column=2, sticky='nsew')
-advanced_area_5_arrow.grid(row=0, column=1, sticky='nsew')
-advanced_area_5_body.grid(row=0, column=0, sticky='nsew')
-advanced_area_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+# advanced_area_5_title.grid(row=0, column=2, sticky='nsew')
+# advanced_area_5_arrow.grid(row=0, column=1, sticky='nsew')
+# advanced_area_5_body.grid(row=0, column=0, sticky='nsew')
+advanced_area_1_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 
-advanced_area_6_title.grid(row=0, column=2, sticky='nsew')
-advanced_area_6_arrow.grid(row=0, column=1, sticky='nsew')
-advanced_area_6_body.grid(row=0, column=0, sticky='nsew')
-advanced_area_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+# advanced_area_6_title.grid(row=0, column=2, sticky='nsew')
+# advanced_area_6_arrow.grid(row=0, column=1, sticky='nsew')
+# advanced_area_6_body.grid(row=0, column=0, sticky='nsew')
+advanced_area_1_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
 
 test_area_0.grid(row=0, column=0, sticky='nsew')
 test_area_1.grid(row=1, column=0, sticky='nsew')
@@ -1733,10 +1910,10 @@ test_area_9.grid(row=9, column=0, sticky='nsew')
 
 temporary_area_1.grid(row=0, column=0, sticky='nsew')
 
-transponder_canva_1 = Canvas(root, width=12, height=4, bg="cyan", highlightthickness=0)
-transponder_canva_2 = Canvas(root, width=12, height=4, bg="cyan", highlightthickness=0)
-transponder_canva_3 = Canvas(root, width=12, height=4, bg="cyan", highlightthickness=0)
-transponder_canva_4 = Canvas(root, width=12, height=4, bg="cyan", highlightthickness=0)
+transponder_canva_1 = Canvas(root, width=16, height=4, bg="cyan", highlightthickness=0)
+transponder_canva_2 = Canvas(root, width=16, height=4, bg="cyan", highlightthickness=0)
+transponder_canva_3 = Canvas(root, width=16, height=4, bg="cyan", highlightthickness=0)
+transponder_canva_4 = Canvas(root, width=16, height=4, bg="cyan", highlightthickness=0)
     
 transponder_canva_1.create_rectangle(10, 10, 400, 300, outline="#00FFFF", width=1)
 transponder_canva_2.create_rectangle(10, 10, 300, 300, outline="#00FFFF", width=1)
@@ -1760,25 +1937,25 @@ skl_4 = Btn(root, primary_btn_img, 150, 547, lambda: print("Testando 7"), lambda
 
 #Altera a imagem do botão BRT, current_level para 1, e chama update_screen
 brt_button = Black_btn(root, off_btn_img, 130, 94, lambda: turn_on_off())
-Btn(root, pge_btn_img, 311, 45, lambda: key_up3_push())
-Btn(root, key_up4_btn_img, 375, 45, lambda: key_up4_push())
-Btn(root, seta_btn_img, 439, 45, lambda: print("seta btn"))
-emergency_button = Btn(root, pino_left_img, 210, 50, lambda: emergency())
-zeroise_button = Btn(root, pino_left_img, 532  , 50, lambda: zeroise())
+Btn(root, pge_btn_img, 453, 67, lambda: key_up3_push())
+Btn(root, key_up4_btn_img, 558, 67, lambda: key_up4_push())
+Btn(root, seta_btn_img, 663, 67, lambda: print("seta btn"))
+emergency_button = Btn(root, pino_left_img, 286, 50, lambda: emergency()) # Radio
+zeroise_button = Btn(root, pino_left_img, 789  , 50, lambda: zeroise())   # Zeroize
 
 # Buttons at the bottom of the screen
-Btn(root, atc_btn_img, 175, 700, lambda: atc_btn_push())
-Btn(root, idt_btn_img, 300, 700, lambda: print("idt btn"))
-Btn(root, triangulo_01_btn_img, 311, 700, lambda: print("triangulo btn"))
-Btn(root, triangulo_02_btn_img, 379, 700, lambda: print("triangulo btn"))
-Btn(root, ch_btn_img, 447, 700, lambda: log())
-Btn(root, freq_img, 507, 700, lambda: side_key_push(0))
+Btn(root, atc_btn_img, 269, 691, lambda: atc_btn_push())
+Btn(root, idt_btn_img, 373, 691, lambda: print("idt btn"))
+Btn(root, triangulo_01_btn_img, 475, 691, lambda: print("triangulo btn"))
+Btn(root, triangulo_02_btn_img, 578, 691, lambda: print("triangulo btn"))
+Btn(root, ch_btn_img, 681, 691, lambda: log())
+# Btn(root, freq_img, 817, 632, lambda: side_key_push(0))
 
 # Temporary buttons
-Btn(root, minus, 516, 740, lambda: change_frequency(is_outer_knob = True, is_increment = False))
-Btn(root, plus, 581, 740, lambda: change_frequency(is_outer_knob = True, is_increment = True))
-Btn(root, minus, 540, 740, lambda: change_frequency(is_outer_knob = False, is_increment = False))
-Btn(root, plus, 555, 740, lambda: change_frequency(is_outer_knob = False, is_increment = True))
+Btn(root, minus, 807, 670, lambda: change_frequency(is_outer_knob = True, is_increment = False))
+Btn(root, plus, 913, 670, lambda: change_frequency(is_outer_knob = True, is_increment = True))
+Btn(root, minus, 831, 670, lambda: change_frequency(is_outer_knob = False, is_increment = False))
+Btn(root, plus, 888, 670, lambda: change_frequency(is_outer_knob = False, is_increment = True))
 
 # Quit button
 button_quit = Button(root, text="Fechar simulador", padx=15, pady=5, command=root.quit)
