@@ -815,6 +815,12 @@ def configure_area(side_key_number):
     if active_area == 1:
         toggle_area(1)
 
+    if current_radio == 1:
+        if active_area == 2:
+            advanced_area_1_2_nivel.set_nivel()
+
+    
+
 
 def side_key_push(side_key_number):
     print('Clique esquerdo, botão {}'.format(side_key_number))
@@ -842,6 +848,7 @@ def side_key_push(side_key_number):
     # Páginas avançadas
     elif current_level == 2:
         configure_area(side_key_number)
+
     # Páginas não desenvolvidas 
     else:
         print("Erro de páginas do sistema")
@@ -1278,6 +1285,8 @@ class Advanced_box(Frame):
         self.grid_rowconfigure(1, weight=1)
 
         if ncol == 0:
+            self.cod0_label.config(anchor="w")
+            self.cod1_label.config(anchor="w")
             if rspan0 == 2:
                 self.cod0_label.grid(row=0, column=0, rowspan=rspan0,  sticky=stk0)
             else:
@@ -1290,6 +1299,8 @@ class Advanced_box(Frame):
                 self.cod2_label.grid(row=0, column=1, sticky=stk1)
                 self.cod3_label.grid(row=1, column=1, sticky=stk1)
         else:
+            self.cod2_label.config(anchor="e")
+            self.cod3_label.config(anchor="e")
             if rspan0 == 2:
                 self.cod0_label.grid(row=0, column=1, rowspan=rspan0,  sticky=stk0)
             else:
@@ -1463,6 +1474,47 @@ class BootScreen(Frame):
             self.line_config.config(fg="white")
 
         # self.progress_label.config(text=msg, fg=color)
+
+class BarraNivel:
+    def __init__(self, parent, x, y, largura=30, altura=90):
+        self.canvas = Canvas(
+            parent,
+            width=largura,
+            height=altura,
+            bg='black',
+            highlightthickness=0
+        )
+        self.canvas.place(x=x, y=y)
+        
+        self.altura_quadrado = altura // 3
+        self.quadrados = []
+
+        self.nivel = 0
+        
+        # Cria os 3 quadrados
+        for i in range(3):
+            y0 = i * self.altura_quadrado
+            y1 = (i + 1) * self.altura_quadrado
+            
+            quad = self.canvas.create_rectangle(
+                2, y0 + 2, largura - 2, y1 - 2,
+                outline='white',
+                fill='black',
+                width=2
+            )
+            self.quadrados.append(quad)
+    
+    def set_nivel(self):
+        self.nivel += 1
+        if self.nivel > 3:
+            self.nivel = 0
+        cores = ['black', 'black', 'black']
+        for i in range(min(self.nivel, 3)):
+            cores[2 - i] = 'white'
+        
+        for i, cor in enumerate(cores):
+            self.canvas.itemconfig(self.quadrados[i], fill=cor)
+
 
 root = Tk()
 root.title("Simulador RMS")
@@ -1639,7 +1691,7 @@ uhf_cod2 = StringVar(value="COD")
 #---------- UHF ADVANCED -----------------------
 uhf_advanced_2_cod0 = StringVar(value="SQL")
 uhf_advanced_2_cod1 = StringVar(value="HI")
-uhf_advanced_2_cod2 = StringVar(value="grad")
+uhf_advanced_2_cod2 = StringVar(value="")
 uhf_advanced_2_cod3 = StringVar(value="")
 uhf_advanced_3_cod0 = StringVar(value="MODE")
 uhf_advanced_3_cod1 = StringVar(value="T/R")
@@ -1829,7 +1881,11 @@ main_area_6.set_label_cod("", "", "", "white", "s")
 
 advanced_area_1_1 = Main_box(advanced_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
 advanced_area_1_1.set_label_cod("", "", "PT", "white", "s")
-advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
+advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 2, 'nsew', 'nsew', "red", 0)
+advanced_area_1_2_nivel = BarraNivel(advanced_area_1_2, 150, 20, 25, 75)
+
+
+
 advanced_area_1_3 = Advanced_box(advanced_page, uhf_advanced_3_cod0, uhf_advanced_3_cod1, uhf_advanced_3_cod2, uhf_advanced_3_cod3,  1, 1, 'nsew', 'nsew', "gray", 0)
 advanced_area_1_4 = Advanced_box(advanced_page, uhf_advanced_4_cod2, uhf_advanced_4_cod3, uhf_advanced_4_cod0, uhf_advanced_4_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
 advanced_area_1_5 = Advanced_box(advanced_page, uhf_advanced_5_cod2, uhf_advanced_5_cod3, uhf_advanced_5_cod0, uhf_advanced_5_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
