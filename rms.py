@@ -1028,14 +1028,20 @@ class Main_box(Frame):
         elif label == self.ind_label:
             label.config(fg="white")  # Standby label color
 
-    def set_label_cod(self, cod0, cod1, cod2, color, anchor):
+    def set_label_cod0(self, cod0, color, anchor):
         self.cod0_label.config(textvariable=StringVar(value=cod0))
         self.cod0_label.config(fg=color)
+        self.cod0_label.config(anchor=anchor)
+
+    def set_label_cod1(self, cod1, color, anchor):
         self.cod1_label.config(textvariable=StringVar(value=cod1))
         self.cod1_label.config(fg=color)
+        self.cod1_label.config(anchor=anchor)
+
+    def set_label_cod2(self, cod2, color, anchor):
         self.cod2_label.config(textvariable=StringVar(value=cod2))
         self.cod2_label.config(fg=color)
-        self.cod0_label.config(anchor=anchor)
+        self.cod2_label.config(anchor=anchor)
 
     def update_labels(self):
         # Update labels in the area
@@ -1314,6 +1320,7 @@ class Advanced_box(Frame):
                 self.cod3_label.grid(row=1, column=0, sticky=stk1)
 
         self.grid(sticky='nsew')
+        
 
     def update_labels(self):
         pass
@@ -1489,7 +1496,7 @@ class BarraNivel:
         self.altura_quadrado = altura // 3
         self.quadrados = []
 
-        self.nivel = 0
+        self.nivel = 3
         
         # Cria os 3 quadrados
         for i in range(3):
@@ -1503,11 +1510,25 @@ class BarraNivel:
                 width=2
             )
             self.quadrados.append(quad)
+        
+        for i, cor in enumerate(['white', 'white', 'white']):
+            self.canvas.itemconfig(self.quadrados[i], fill=cor)
     
     def set_nivel(self):
-        self.nivel += 1
+        self.nivel = self.nivel + 1
+
         if self.nivel > 3:
             self.nivel = 0
+
+        if self.nivel == 0:
+            main_area_1.set_label_cod0("$", "orange", "n")
+            advanced_area_1_1.set_label_cod0("$", "orange", "n")
+        if self.nivel == 1:
+            main_area_1.set_label_cod0("", "black", "center")
+            advanced_area_1_1.set_label_cod0("", "black", "center")
+
+
+
         cores = ['black', 'black', 'black']
         for i in range(min(self.nivel, 3)):
             cores[2 - i] = 'white'
@@ -1685,9 +1706,9 @@ var_advanced_adf_option3 = StringVar(value="")
 uhf_ind = StringVar(value="V\n/\nU")
 uhf_active = StringVar(value="120.15")
 uhf_preset = StringVar(value="118.15")
-uhf_cod0 = StringVar(value="COD")
-uhf_cod1 = StringVar(value="COD")
-uhf_cod2 = StringVar(value="COD")
+uhf_cod0 = StringVar(value="")
+uhf_cod1 = StringVar(value="")
+uhf_cod2 = StringVar(value="")
 #---------- UHF ADVANCED -----------------------
 uhf_advanced_2_cod0 = StringVar(value="SQL")
 uhf_advanced_2_cod1 = StringVar(value="HI")
@@ -1711,33 +1732,33 @@ uhf_advanced_6_cod2 = StringVar(value="MAR")
 uhf_advanced_6_cod3 = StringVar(value="OFF")
 #------------------------------------------------
 hf_ind = StringVar(value="H\nF")
-hf_cod0 = StringVar(value="COD")
-hf_cod1 = StringVar(value="COD")
-hf_cod2 = StringVar(value="COD")
+hf_cod0 = StringVar(value="")
+hf_cod1 = StringVar(value="")
+hf_cod2 = StringVar(value="")
 hf_active = StringVar(value="03.601")
 hf_preset = StringVar(value="02.000")
 atc_ind = StringVar(value="A\nT\nC")
-atc_cod0 = StringVar(value="ALT")
-atc_cod1 = StringVar(value="ALT")
-atc_cod2 = StringVar(value="ALT")
+atc_cod0 = StringVar(value="")
+atc_cod1 = StringVar(value="")
+atc_cod2 = StringVar(value="")
 atc_active = StringVar(value="STBY")
 atc_preset = StringVar(value="2365")
 vhf_ind = StringVar(value="V\nH\nF")
-vhf_cod0 = StringVar(value="COD")
-vhf_cod1 = StringVar(value="COD")
-vhf_cod2 = StringVar(value="COD")
+vhf_cod0 = StringVar(value="")
+vhf_cod1 = StringVar(value="")
+vhf_cod2 = StringVar(value="")
 vhf_active = StringVar(value="139.50")  
 vhf_preset = StringVar(value="136.00")
 vor_ind = StringVar(value="V\n/\nL")
-vor_cod0 = StringVar(value="COD")
-vor_cod1 = StringVar(value="COD")
-vor_cod2 = StringVar(value="COD")
+vor_cod0 = StringVar(value="")
+vor_cod1 = StringVar(value="")
+vor_cod2 = StringVar(value="")
 vor_active = StringVar(value="112.60")
 vor_preset = StringVar(value="115.40")
 adf_ind = StringVar(value="A\nD\nF")
-adf_cod0 = StringVar(value="COD")
-adf_cod1 = StringVar(value="COD")
-adf_cod2 = StringVar(value="COD")
+adf_cod0 = StringVar(value="")
+adf_cod1 = StringVar(value="")
+adf_cod2 = StringVar(value="")
 adf_active = StringVar(value="430.0")
 adf_preset = StringVar(value="275.0") 
 
@@ -1867,21 +1888,17 @@ test_page.rowconfigure((1, 2, 3, 4, 5, 6, 7), weight=1)
 # Define areas Main_box(self, root, ind, cod0, cod1, cod2, rspan, ncol, active, stby, bg)
 # set_label_cod(self, cod0, cod1, cod2, color, anchor)
 main_area_1 = Main_box(main_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
-main_area_1.set_label_cod("", "", "PT", "white", "s")
+main_area_1.set_label_cod2("PT", "white", "s")
 main_area_2 = Main_box(main_page, hf_ind, hf_cod0, hf_cod1, hf_cod2, 1, 0, hf_active, hf_preset, "gray")
-main_area_2.set_label_cod("", "", "", "white", "s")
 main_area_3 = Main_box(main_page, atc_ind, atc_cod0, atc_cod1, atc_cod2, 1, 0, atc_active, atc_preset, "gray")
-main_area_3.set_label_cod("", "ALT", "", "orange", "center")
+main_area_3.set_label_cod1("ALT", "orange", "center")
 main_area_4 = Main_box(main_page, vhf_ind, vhf_cod0, vhf_cod1, vhf_cod2, 1, 1, vhf_active, vhf_preset, "gray")
-main_area_4.set_label_cod("", "", "", "white", "s")
 main_area_5 = Main_box(main_page, vor_ind, vor_cod0, vor_cod1, vor_cod2, 1, 1, vor_active, vor_preset, "gray")
-main_area_5.set_label_cod("", "", "", "white", "s")
 main_area_6 = Main_box(main_page, adf_ind, adf_cod0, adf_cod1, adf_cod2, 1, 1, adf_active, adf_preset, "gray")
-main_area_6.set_label_cod("", "", "", "white", "s")
 
 advanced_area_1_1 = Main_box(advanced_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
-advanced_area_1_1.set_label_cod("", "", "PT", "white", "s")
-advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 2, 'nsew', 'nsew', "red", 0)
+advanced_area_1_1.set_label_cod2("PT", "white", "s")
+advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_1_2_nivel = BarraNivel(advanced_area_1_2, 150, 20, 25, 75)
 
 
