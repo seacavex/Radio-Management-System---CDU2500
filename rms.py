@@ -277,8 +277,8 @@ def update_screen():
         advanced_page.place(x=x_screen, y=y_screen)
         activate_advanced(1)
 
-        advanced_area_2_title.title.config(text=uhf_sql_title.get())
-        advanced_area_2_body.option_labels[0].config(text=uhf_sql_selected.get())
+        # advanced_area_2_title.title.config(text=uhf_sql_title.get())
+        # advanced_area_2_body.option_labels[0].config(text=uhf_sql_selected.get())
         # advanced_area_2_arrow.arrow_labels[uhf_sql_arrow_value.get()].config(text='>')
     else:
         print(f"Else statement. Area: {active_area}, Level: {current_level}, Radio: {current_radio}, Page: {current_page}")
@@ -769,7 +769,7 @@ def toggle_area(side_key_number):
                 active_area = side_key_number
                 activate_main(active_area)
                 return
-    
+    # Primeiro clique em área não selecionada
     if side_key_number != 0 and side_key_number != active_area:
         active_area = side_key_number
         activate_main(active_area)
@@ -809,10 +809,11 @@ def configure_area(side_key_number):
       
     if side_key_number != 0 and side_key_number != active_area:
         active_area = side_key_number
+        activate_advanced(side_key_number)
         return
     
-    if active_area == 2:
-        pass
+    if active_area == 1:
+        toggle_area(1)
 
 
 def side_key_push(side_key_number):
@@ -823,6 +824,7 @@ def side_key_push(side_key_number):
     
     print("current_level: {}, current_page: {}, pressed_side_btn: {}, active_area: {}, transponder_indicator: {}".format(current_level, current_page, pressed_side_btn, active_area, transponder_indicator))
 
+    #Se tiver algum botão segurado.
     if pressed_side_btn != 0:
         if pressed_side_btn == 3 and side_key_number == 6:
             transponder_indicator = 0
@@ -834,10 +836,13 @@ def side_key_push(side_key_number):
         unpress_side_buttons()
         return
 
+    # Página inicial
     if current_level == 1 and current_page == 1:
         toggle_area(side_key_number)
+    # Páginas avançadas
     elif current_level == 2:
         configure_area(side_key_number)
+    # Páginas não desenvolvidas 
     else:
         print("Erro de páginas do sistema")
 
@@ -1231,7 +1236,7 @@ class Advanced_sub_box_body(Frame):
         
 # Área avançada com títulos, setas e opções        
 class Advanced_box(Frame):
-    def __init__(self, root, cod0, cod1, cod2, cod3, rspan0, rspan1, stk0, stk1, bg, ncol):
+    def __init__(self, root, cod0, cod1, cod2, cod3, rspan0, rspan2, stk0, stk1, bg, ncol):
         super().__init__(root, padx=padx_area, pady=pady_area, bg=bg, width=main_area_width, height=main_area_height)
         self.grid_propagate(False)
 
@@ -1241,7 +1246,6 @@ class Advanced_box(Frame):
             font=active_font,
             background="black",
             fg="white",
-            anchor="w"
         )
 
         self.cod1_label = Label(
@@ -1250,7 +1254,6 @@ class Advanced_box(Frame):
             font=stby_font,
             background="black",
             fg="white",
-            anchor="w"
         )
 
         self.cod2_label = Label(
@@ -1259,7 +1262,6 @@ class Advanced_box(Frame):
             font=cod_font,
             background="black",
             fg="white",
-            anchor="center"
         )
 
         self.cod3_label = Label(
@@ -1268,7 +1270,6 @@ class Advanced_box(Frame):
             font=cod_font,
             background="black",
             fg="white",
-            anchor="center"
         )
 
         self.grid_columnconfigure(0, weight=1)
@@ -1283,8 +1284,8 @@ class Advanced_box(Frame):
                 self.cod0_label.grid(row=0, column=0, sticky=stk0)
                 self.cod1_label.grid(row=1, column=0, sticky=stk0)
             
-            if rspan1 == 2:
-                self.cod2_label.grid(row=0, column=1, rowspan=rspan1, sticky=stk1)
+            if rspan2 == 2:
+                self.cod2_label.grid(row=0, column=1, rowspan=rspan2, sticky=stk1)
             else:
                 self.cod2_label.grid(row=0, column=1, sticky=stk1)
                 self.cod3_label.grid(row=1, column=1, sticky=stk1)
@@ -1295,8 +1296,8 @@ class Advanced_box(Frame):
                 self.cod0_label.grid(row=0, column=1, sticky=stk0)
                 self.cod1_label.grid(row=1, column=1, sticky=stk0)
             
-            if rspan1 == 2:
-                self.cod2_label.grid(row=0, column=0, rowspan=rspan1, sticky=stk1)
+            if rspan2 == 2:
+                self.cod2_label.grid(row=0, column=0, rowspan=rspan2, sticky=stk1)
             else:
                 self.cod2_label.grid(row=0, column=0, sticky=stk1)
                 self.cod3_label.grid(row=1, column=0, sticky=stk1)
@@ -1828,7 +1829,7 @@ main_area_6.set_label_cod("", "", "", "white", "s")
 
 advanced_area_1_1 = Main_box(advanced_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
 advanced_area_1_1.set_label_cod("", "", "PT", "white", "s")
-advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 1, 'nsew', 'nsew', "gray", 0)
+advanced_area_1_2 = Advanced_box(advanced_page, uhf_advanced_2_cod0, uhf_advanced_2_cod1, uhf_advanced_2_cod2, uhf_advanced_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_1_3 = Advanced_box(advanced_page, uhf_advanced_3_cod0, uhf_advanced_3_cod1, uhf_advanced_3_cod2, uhf_advanced_3_cod3,  1, 1, 'nsew', 'nsew', "gray", 0)
 advanced_area_1_4 = Advanced_box(advanced_page, uhf_advanced_4_cod2, uhf_advanced_4_cod3, uhf_advanced_4_cod0, uhf_advanced_4_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
 advanced_area_1_5 = Advanced_box(advanced_page, uhf_advanced_5_cod2, uhf_advanced_5_cod3, uhf_advanced_5_cod0, uhf_advanced_5_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
