@@ -5,7 +5,7 @@ import time
 
 # Global variables
 active_area = 1                 # Área ativa (1-6) - qual rádio está selecionado
-current_level = 0              # Nível de interface (0-off, 1-main freq, 2-advance, 4-teste, 5-não desenvolvida)
+current_level = 0              # Nível de interface (0-off, 1-main freq, 2-advance, 3-channels, 5-não desenvolvida)
 current_radio = 1               # Rádio selecionado
 current_page = 1                # Página atual
 pressed_side_btn = 0            # Click mouse direito ("clique longo")
@@ -17,6 +17,7 @@ timer = None
 boot_screen_active = False      # Controla se a tela de boot está ativa
 boot_start_time = None          # Armazena quando a tela de boot foi mostrada
 delayinit = 2
+radio_active = [True, True, True, True, True, True]
 
 # Manual constants
 # Dimensões da tela
@@ -133,18 +134,30 @@ def update_pino_button_image(value, button):
 # Used before placing a page into the screen to avoid overplacement
 # Add every new page created to it
 def forget_all_pages():
+    
     off_screen.place_forget()
     main_page.place_forget()
+
     advanced_page_uhf_1.place_forget()
     advanced_page_uhf_2.place_forget()
     advanced_page_uhf_3.place_forget()
+
     advanced_page_hf_1.place_forget()
     advanced_page_hf_2.place_forget()
     advanced_page_hf_3.place_forget()
+
     advanced_page_atc_1.place_forget()
+
     advanced_page_vhf_1.place_forget()
+    channels_vhf_1.place_forget()
+    channels_vhf_2.place_forget()
+    channels_vhf_3.place_forget()
+    channels_vhf_4.place_forget()
+
     advanced_page_vor_1.place_forget()
+
     advanced_page_adf_1.place_forget()
+
     test_page.place_forget()
     temporary_page.place_forget() 
     boot_screen.place_forget()
@@ -217,13 +230,13 @@ def place_page_icon(widget):
 # Function to update the image indicator of the page based of the values of the global variables
 def update_page_icon():
     global current_level, current_radio, current_page
+    # print("Update Page Icon cl:{}, cr:{}, cp:{}".format(current_level, current_radio, current_page))
 
-    if current_level in {0, 2, 4, 5}:
+    if current_level in {0, 2, 3, 4, 5}:
         #Remover indicação de páginas no rodapé
         forget_page_icon()
         forget_transponder_indicators()
         
-        return
     
     if current_level == 1:
         if current_page == 1:
@@ -240,12 +253,23 @@ def update_page_icon():
             elif current_page == 3:
                 place_page_icon(widget_page_3_3)
 
+    if current_level == 3:
+        if current_radio == 4:
+            if current_page == 1:
+                place_page_icon(widget_page_1_4)
+            elif current_page == 2:
+                place_page_icon(widget_page_2_4)
+            elif current_page == 3:
+                place_page_icon(widget_page_3_4)
+            elif current_page == 4:
+                place_page_icon(widget_page_4_4)
+
 # Function to update the content os the screen given its global variables
 # Define qual página será exibida
 def update_screen():
     # Logic to select the correct screen based on global variables  
     global active_area, current_level, current_radio, current_page
-    print("Global: {}, {}, {}, {}, ".format(active_area, current_level, current_radio, current_page))
+    print("Global: {}, {}, {}, {}".format(active_area, current_level, current_radio, current_page))
 
  
     if current_level not in {0, 1, 2, 3, 4, 5, 6}:
@@ -322,10 +346,10 @@ def update_screen():
                 
         if current_radio == 4:
             if current_page == 1:
-                forget_all_pages()
-                update_page_icon()
-                advanced_page_vhf_1.place(x=x_screen, y=y_screen)
-                activate_advanced(1)
+                    forget_all_pages()
+                    update_page_icon()
+                    advanced_page_vhf_1.place(x=x_screen, y=y_screen)
+                    activate_advanced(1)
 
         if current_radio == 5:
             if current_page == 1:
@@ -341,9 +365,33 @@ def update_screen():
                 advanced_page_adf_1.place(x=x_screen, y=y_screen)
                 activate_advanced(1)
 
-        # advanced_area_2_title.title.config(text=uhf_sql_title.get())
-        # advanced_area_2_body.option_labels[0].config(text=uhf_sql_selected.get())
-        # advanced_area_2_arrow.arrow_labels[uhf_sql_arrow_value.get()].config(text='>')
+        return
+
+    if current_level == 3:
+        print("agoora")
+        
+        if current_radio == 4:
+            if current_page == 1:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_1.place(x=x_screen, y=y_screen)
+                activate_channel(1)
+            if current_page == 2:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_2.place(x=x_screen, y=y_screen)
+                activate_channel(1)
+            if current_page == 3:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_3.place(x=x_screen, y=y_screen)
+                activate_channel(1)
+            if current_page == 4:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_4.place(x=x_screen, y=y_screen)
+                activate_channel(1)
+
     else:
         print(f"Else statement. Area: {active_area}, Level: {current_level}, Radio: {current_radio}, Page: {current_page}")
 
@@ -413,11 +461,25 @@ def change_frequency(is_outer_knob, is_increment):
 
     # Determine which variable to use based on the current active area
     if active_area == 1 and emergency_value != True:
-        delta = 1 if is_outer_knob else 0.25
+        delta = 1 if is_outer_knob else 0.05
         stby_var = uhf_preset
         decimals = 2
         min_freq = 225.00
         max_freq = 399.75
+        # if uhf_advanced_1_5_cod1.get() == "FM":
+        #     min_freq_1 = 030.00
+        #     max_freq_1 = 087.97
+        #     min_freq_2 = 136.00
+        #     max_freq_2 = 155.97
+        # if uhf_advanced_1_5_cod1.get() == "FM" and uhf_advanced_1_6_cod1.get() == "SHIP":
+        #     min_freq_1 = 156.00
+        #     max_freq_1 = 173.97
+        # if uhf_advanced_1_5_cod1.get() == "AM":
+        #     min_freq_1 = 108.00
+        #     max_freq_1 = 135.97
+        #     min_freq_2 = 136.00
+        #     max_freq_2 = 155.97
+
     elif active_area == 2 and emergency_value != True:
         delta = 0.1 if is_outer_knob else 0.001
         stby_var = hf_preset
@@ -472,9 +534,9 @@ def change_frequency(is_outer_knob, is_increment):
     elif active_area == 4 and emergency_value != True:
         delta = 1 if is_outer_knob else 0.25
         stby_var = vhf_preset
-        decimals = 3
-        min_freq = 118.000
-        max_freq = 152.000
+        decimals = 2
+        min_freq = 118.00
+        max_freq = 151.80
     elif active_area == 5:
         delta = 1 if is_outer_knob else 0.25
         stby_var = vor_preset
@@ -498,6 +560,10 @@ def change_frequency(is_outer_knob, is_increment):
         new_value = min_freq
     elif new_value < min_freq:
         new_value = max_freq
+    # if new_value > max_freq_1:
+    #     new_value = min_freq_1
+    # elif new_value < min_freq:
+    #     new_value = max_freq_1
 
     # Format the new value with the specified number of decimal places
     formatted_value = f"{new_value:.{decimals}f}"
@@ -505,6 +571,15 @@ def change_frequency(is_outer_knob, is_increment):
     stby_var.set(formatted_value)
     areas[active_area - 1].update_labels()
 
+    if current_level == 3:
+        if current_page == 1:
+            if active_area == 1:
+                delta = 1 if is_outer_knob else 0.05
+                decimals = 2
+                min_freq = 225.00
+                max_freq = 399.75
+
+            print("Modificação das frequências em desenvolvimento.")
 # Remove the cyan border of all areas
 # This function is used in order to activate different areas of the screen
 def deactivate_main_areas():
@@ -633,6 +708,111 @@ def activate_advanced(advanced_area_number):
     selected_area.config(bg="cyan")
     active_area = advanced_area_number
 
+def activate_channel(channel_number):
+    global active_area
+    
+    if current_radio == 1:
+        if current_page == 1:
+            areas = [ advanced_area_uhf_1_1, advanced_area_uhf_1_2, advanced_area_uhf_1_3, advanced_area_uhf_1_4, advanced_area_uhf_1_5, advanced_area_uhf_1_6 ]
+
+        if current_page == 2:
+            areas = [ advanced_area_uhf_2_1, advanced_area_uhf_2_2, advanced_area_uhf_2_3, advanced_area_uhf_2_4, advanced_area_uhf_2_5, advanced_area_uhf_2_6 ]
+
+        if current_page == 3:
+            areas = [ advanced_area_uhf_3_1, advanced_area_uhf_3_2, advanced_area_uhf_3_3, advanced_area_uhf_3_4, advanced_area_uhf_3_5, advanced_area_uhf_3_6 ]
+
+    if current_radio == 2:
+        if current_page == 1:
+            areas = [ advanced_area_hf_1_1, advanced_area_hf_1_2, advanced_area_hf_1_3, advanced_area_hf_1_4, advanced_area_hf_1_5, advanced_area_hf_1_6 ]
+
+        if current_page == 2:
+            areas = [ advanced_area_hf_2_1, advanced_area_hf_2_2, advanced_area_hf_2_3, advanced_area_hf_2_4, advanced_area_hf_2_5, advanced_area_hf_2_6 ]
+    
+        if current_page == 3:
+            areas = [ advanced_area_hf_3_1, advanced_area_hf_3_2, advanced_area_hf_3_3, advanced_area_hf_3_4, advanced_area_hf_3_5, advanced_area_hf_3_6 ]
+    
+    if current_radio == 3:
+        if current_page == 1:
+            areas = [ advanced_area_atc_1_1, advanced_area_atc_1_2, advanced_area_atc_1_3, advanced_area_atc_1_4, advanced_area_atc_1_5, advanced_area_atc_1_6 ]
+
+    if current_radio == 4:
+        if current_page == 1:
+            areas = [ channels_vhf_1_1, channels_vhf_1_2, channels_vhf_1_3, channels_vhf_1_4, channels_vhf_1_5, channels_vhf_1_6 ]
+        if current_page == 2:
+            areas = [ channels_vhf_2_1, channels_vhf_2_2, channels_vhf_2_3, channels_vhf_2_4, channels_vhf_2_5, channels_vhf_2_6 ]
+        if current_page == 3:
+            areas = [ channels_vhf_3_1, channels_vhf_3_2, channels_vhf_3_3, channels_vhf_3_4, channels_vhf_3_5, channels_vhf_3_6 ]
+        if current_page == 4:
+            areas = [ channels_vhf_4_1, channels_vhf_4_2, channels_vhf_4_3, channels_vhf_4_4, channels_vhf_4_5, channels_vhf_4_6 ]
+
+    if current_radio == 5:
+        if current_page == 1:
+            areas = [ advanced_area_vor_1_1, advanced_area_vor_1_2, advanced_area_vor_1_3, advanced_area_vor_1_4, advanced_area_vor_1_5, advanced_area_vor_1_6 ]
+
+    if current_radio == 6:
+        if current_page == 1:
+            areas = [ advanced_area_adf_1_1, advanced_area_adf_1_2, advanced_area_adf_1_3, advanced_area_adf_1_4, advanced_area_adf_1_5, advanced_area_adf_1_6 ]
+
+    # Deactivate all areas first to ensure only one area is active at a time
+    deactivate_channel()
+
+    # Activate the selected area
+    if channel_number > len(areas) or channel_number < 1:
+        return
+
+    selected_area = areas[channel_number - 1]
+    selected_area.config(bg="cyan")
+    print("Area selecionada channel: {}".format(selected_area))
+    active_area = channel_number
+
+def deactivate_channel():
+    if current_radio == 1:
+        if current_page == 1:
+            areas = [ advanced_area_uhf_1_1, advanced_area_uhf_1_2, advanced_area_uhf_1_3, advanced_area_uhf_1_4, advanced_area_uhf_1_5, advanced_area_uhf_1_6 ]
+
+        if current_page == 2:
+            areas = [ advanced_area_uhf_2_1, advanced_area_uhf_2_2, advanced_area_uhf_2_3, advanced_area_uhf_2_4, advanced_area_uhf_2_5, advanced_area_uhf_2_6 ]
+
+        if current_page == 3:
+            areas = [ advanced_area_uhf_3_1, advanced_area_uhf_3_2, advanced_area_uhf_3_3, advanced_area_uhf_3_4, advanced_area_uhf_3_5, advanced_area_uhf_3_6 ]
+
+    if current_radio == 2:
+        if current_page == 1:
+            areas = [ advanced_area_hf_1_1, advanced_area_hf_1_2, advanced_area_hf_1_3, advanced_area_hf_1_4, advanced_area_hf_1_5, advanced_area_hf_1_6 ]
+
+        if current_page == 2:
+            areas = [ advanced_area_hf_2_1, advanced_area_hf_2_2, advanced_area_hf_2_3, advanced_area_hf_2_4, advanced_area_hf_2_5, advanced_area_hf_2_6 ]
+    
+        if current_page == 3:
+            areas = [ advanced_area_hf_3_1, advanced_area_hf_3_2, advanced_area_hf_3_3, advanced_area_hf_3_4, advanced_area_hf_3_5, advanced_area_hf_3_6 ]
+    
+    if current_radio == 3:
+        if current_page == 1:
+            areas = [ advanced_area_atc_1_1, advanced_area_atc_1_2, advanced_area_atc_1_3, advanced_area_atc_1_4, advanced_area_atc_1_5, advanced_area_atc_1_6 ]
+
+    if current_radio == 4:
+        if current_page == 1:
+            areas = [ channels_vhf_1_1, channels_vhf_1_2, channels_vhf_1_3, channels_vhf_1_4, channels_vhf_1_5, channels_vhf_1_6 ]
+        if current_page == 2:
+            areas = [ channels_vhf_2_1, channels_vhf_2_2, channels_vhf_2_3, channels_vhf_2_4, channels_vhf_2_5, channels_vhf_2_6 ]
+        if current_page == 3:
+            areas = [ channels_vhf_3_1, channels_vhf_3_2, channels_vhf_3_3, channels_vhf_3_4, channels_vhf_3_5, channels_vhf_3_6 ]
+        if current_page == 4:
+            areas = [ channels_vhf_4_1, channels_vhf_4_2, channels_vhf_4_3, channels_vhf_4_4, channels_vhf_4_5, channels_vhf_4_6 ]
+
+    if current_radio == 5:
+        if current_page == 1:
+            areas = [ advanced_area_vor_1_1, advanced_area_vor_1_2, advanced_area_vor_1_3, advanced_area_vor_1_4, advanced_area_vor_1_5, advanced_area_vor_1_6 ]
+
+    if current_radio == 6:
+        if current_page == 1:
+            areas = [ advanced_area_adf_1_1, advanced_area_adf_1_2, advanced_area_adf_1_3, advanced_area_adf_1_4, advanced_area_adf_1_5, advanced_area_adf_1_6 ]
+
+    for area in areas:
+        area.config(bg="gray")
+        area.update_labels()
+
+
 def clear_advanced_variables():
     var_advanced_active.set("")
     var_advanced_preset.set("")
@@ -673,7 +853,7 @@ def get_advanced_variables():
     global current_level, current_radio, current_page
     global uhf_sql_arrow_position
     
-    if current_level != 2:
+    if current_level != 2 and current_level != 3:
         print("Error: Current level is not 2. Cannot access advanced variables.")
         return
     
@@ -805,7 +985,7 @@ def key_up3_push():
     if zeroise_value or emergency_value:
         return
     
-    if current_level != 2:
+    if current_level != 2 and current_level != 3:
         print("NÃO TEM PRÓXIMA PAG PARA ACESSAR")
         return
 
@@ -826,7 +1006,14 @@ def key_up3_push():
     elif current_radio == 3:
         pass
     elif current_radio == 4:
-        pass
+        if current_page == 1:
+            current_page = 2
+        elif current_page == 2:
+            current_page = 3
+        elif current_page == 3:
+            current_page = 4 
+        elif current_page == 4:
+            current_page = 1 
 
     get_advanced_variables()
 
@@ -853,6 +1040,7 @@ def key_up4_push():
         current_level = 2
         current_page = 1
         get_advanced_variables()
+        update_screen()
     else:
         current_page = 1
         current_level = 1
@@ -937,7 +1125,7 @@ def get_next_option(current_value, options):
     return current_value 
 
 def configure_area(side_key_number): 
-    global active_area, emergency_value, zeroise_value
+    global current_level, active_area, emergency_value, zeroise_value
 
     if active_area < 1 or active_area > 7:
         return
@@ -947,7 +1135,10 @@ def configure_area(side_key_number):
       
     if side_key_number != 0 and side_key_number != active_area:
         active_area = side_key_number
-        activate_advanced(side_key_number)
+        if current_level == 3:
+            activate_channel(side_key_number)
+        else:
+            activate_advanced(side_key_number)
         return
     
     if active_area == 1:
@@ -964,10 +1155,14 @@ def configure_area(side_key_number):
                     advanced_area_uhf_1_3.set_label_cod1("TR+G", "cyan", "w")     
                     main_area_1.set_label_cod1("+G", "white", "e")
                     advanced_area_uhf_1_1.set_label_cod1("+G", "white", "e")
+                    advanced_area_uhf_2_1.set_label_cod1("+G", "white", "e")
+                    advanced_area_uhf_3_1.set_label_cod1("+G", "white", "e")
                 elif advanced_area_uhf_1_3.get_label_cod1() == "TR+G":
                     advanced_area_uhf_1_3.set_label_cod1("243", "cyan", "w")
                     main_area_1.set_label_cod1("", "white", "e")
                     advanced_area_uhf_1_1.set_label_cod1("", "white", "e")
+                    advanced_area_uhf_2_1.set_label_cod1("", "white", "e")
+                    advanced_area_uhf_3_1.set_label_cod1("", "white", "e")
                     advanced_area_uhf_1_5.set_label_cod2("AM\nFM", "white", "e")
                     uhf_active.set("243.00")
                     uhf_preset.set("GUARD")
@@ -999,8 +1194,16 @@ def configure_area(side_key_number):
             if active_area == 2:
                 if advanced_area_uhf_2_2.get_label_cod1() == "PT":
                     advanced_area_uhf_2_2.set_label_cod1("CT", "cyan", "w")
+                    main_area_1.set_label_cod2("CT", "white", "center")
+                    advanced_area_uhf_1_1.set_label_cod2("CT", "white", "center")
+                    advanced_area_uhf_2_1.set_label_cod2("CT", "white", "center")
+                    advanced_area_uhf_3_1.set_label_cod2("CT", "white", "center")
                 else:
-                    advanced_area_uhf_2_2.set_label_cod1("PT", "cyan", "w")
+                    main_area_1.set_label_cod2("PT", "white", "center")
+                    advanced_area_uhf_2_2.set_label_cod1("PT", "cyan", "w")                    
+                    advanced_area_uhf_1_1.set_label_cod2("PT", "white", "center")                    
+                    advanced_area_uhf_2_1.set_label_cod2("PT", "white", "center")                    
+                    advanced_area_uhf_3_1.set_label_cod2("PT", "white", "center")
             if active_area == 3:
                 if advanced_area_uhf_2_3.get_label_cod1() == "OFF":
                     advanced_area_uhf_2_3.set_label_cod1("ON", "cyan", "w")
@@ -1008,10 +1211,11 @@ def configure_area(side_key_number):
                     advanced_area_uhf_2_3.set_label_cod1("OFF", "cyan", "w")
                 
             if active_area == 4:
-                if advanced_area_uhf_2_4.get_label_cod1() == "02":
-                    advanced_area_uhf_2_4.set_label_cod1("01", "cyan", "e")
-                else:
-                    advanced_area_uhf_2_4.set_label_cod1("02", "cyan", "e")
+                    number = int(advanced_area_uhf_2_4.get_label_cod1())
+                    number += 1
+                    if number > 25:
+                        number =1
+                    advanced_area_uhf_2_4.set_label_cod1(f"{number:02d}", "cyan", "e")
             if active_area == 5:
                 if advanced_area_uhf_2_5.get_label_cod1() == "---":
                     advanced_area_uhf_2_5.set_label_cod1("---", "cyan", "e")
@@ -1049,10 +1253,11 @@ def configure_area(side_key_number):
                 else:
                     advanced_area_hf_1_4.set_label_cod1("OFF", "cyan", "e")
             if active_area == 5:
-                if advanced_area_hf_1_5.get_label_cod1() == "AM":
-                    advanced_area_hf_1_5.set_label_cod1("FM", "cyan", "e")
-                else:
-                    advanced_area_hf_1_5.set_label_cod1("AM", "cyan", "e")
+                advanced_area_hf_1_5_nivel.set_nivel()
+                # if advanced_area_hf_1_5.get_label_cod1() == "AM":
+                #     advanced_area_hf_1_5.set_label_cod1("FM", "cyan", "e")
+                # else:
+                #     advanced_area_hf_1_5.set_label_cod1("AM", "cyan", "e")
             if active_area == 6:
                 pass
         
@@ -1096,6 +1301,33 @@ def configure_area(side_key_number):
                 else:
                     advanced_area_hf_3_6.set_label_cod1("OFF", "cyan", "e")
 
+    if current_radio == 4:
+        if current_page == 1:
+            if active_area == 2:
+                if advanced_area_vhf_1_2.get_label_cod1() == "ON":
+                    main_area_4.set_label_cod0("$", "orange", "n")
+                    advanced_area_vhf_1_1.set_label_cod0("$", "orange", "n")
+                    advanced_area_vhf_1_2.set_label_cod1("OFF", "cyan", "w")
+                else:
+                    main_area_4.set_label_cod0("", "black", "center")
+                    advanced_area_vhf_1_1.set_label_cod0("", "black", "center")
+                    advanced_area_vhf_1_2.set_label_cod1("ON", "cyan", "w")
+            if active_area == 4:
+                if advanced_area_vhf_1_4.get_label_cod1() == "ON":
+                    advanced_area_vhf_1_4.set_label_cod1("OFF", "cyan", "e")
+                    print(advanced_area_vhf_1_1.get_label_active())
+                    vhf_active.set(advanced_area_vhf_1_1.get_label_active()[:-1])
+                else:
+                    advanced_area_vhf_1_4.set_label_cod1("ON", "cyan", "e")
+                    vhf_active.set(advanced_area_vhf_1_1.get_label_active()+"₀")
+            if active_area == 5:
+                if advanced_area_vhf_1_5.get_label_cod1() == "":
+                    advanced_area_vhf_1_5.set_label_cod1("RUN", "cyan", "e")
+                    root.after(3000, lambda: advanced_area_vhf_1_5.set_label_cod1("00", "cyan", "e") )
+                    root.after(6000, lambda: advanced_area_vhf_1_5.set_label_cod1("", "cyan", "e") )
+            if active_area == 6:
+                current_level = 3
+                update_screen()
 
     
     if current_radio == 6:
@@ -1136,8 +1368,9 @@ def side_key_push(side_key_number):
     # Páginas avançadas
     elif current_level == 2:
         configure_area(side_key_number)
-        
-        
+    elif current_level == 3:
+        print("Navegação current level 3")
+        configure_area(side_key_number)
 
     # Páginas não desenvolvidas 
     else:
@@ -1165,7 +1398,7 @@ def unpress_side_buttons():
 
 # Function to handle a long press at a side key button
 def keep_pressing_side_btn(side_key_number, button):
-    global pressed_side_btn
+    global pressed_side_btn, radio_active
 
     if pressed_side_btn == side_key_number:
         pressed_side_btn = 0
@@ -1176,7 +1409,16 @@ def keep_pressing_side_btn(side_key_number, button):
     pressed_side_btn = side_key_number
     button.update_image(primary_btn_pressed_img)
 
+    areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
+    
+    if radio_active[side_key_number - 1]:
+        radio_active[side_key_number - 1] = False
+        areas[side_key_number-1].grid_remove()
+    else:        
+        areas[side_key_number-1].grid()
+        radio_active[side_key_number - 1] = True
     print("side_key_number", pressed_side_btn)
+    print
 
 # Class of a button, to be used in all main buttons of the screen
 # It defines what must be done when the user clicks or right clicks at it
@@ -1333,15 +1575,18 @@ class Main_box(Frame):
         self.cod2_label.config(fg=color)
         self.cod2_label.config(anchor=anchor)
 
+    def get_label_active(self):
+        return self.active_label.cget("text")
+
     def set_label_active(self, active_label, color, anchor):
         self.active_label.config(textvariable=StringVar(value=active_label))
-        self.cod2_label.config(fg=color)
-        self.cod2_label.config(anchor=anchor)
+        self.active_label.config(fg=color)
+        self.active_label.config(anchor=anchor)
 
     def set_label_standby(self, stby_label, color, anchor):
         self.stby_label.config(textvariable=StringVar(value=stby_label))
-        self.cod2_label.config(fg=color)
-        self.cod2_label.config(anchor=anchor)
+        self.stby_label.config(fg=color)
+        self.stby_label.config(anchor=anchor)
 
     def update_labels(self):
         # Update labels in the area
@@ -1350,42 +1595,39 @@ class Main_box(Frame):
         self.ind_label.update()
         self.cod1_label.update()
 
-class Test_big_box(Frame):
-    def __init__(self, root, title, left_text="", right_text=""):
-        super().__init__(root, width=full_area_width, height=test_big_box_height, bg="black")
+class Channels(Frame):
+    def __init__(self, root, cod1, cod2, align1='nswe', align2='nswe', ncol=0, bg='black'):
+        super().__init__(root, padx=padx_area, pady=pady_area, bg=bg, width=main_area_width, height=main_area_height)
         self.grid_propagate(False)
 
-        self.title = title
-        self.left_text = left_text
-        self.right_text = right_text
+        self.cod1 = cod1
+        self.cod2 = cod2
 
-        self.title_label = Label(
+        self.cod1 = Label(
             self,
-            textvariable=self.title,
+            textvariable=self.cod1,
             font=stby_font,
             background="black",
             fg="white"
         )
-        self.left_text_label = Label(
+        self.cod2 = Label(
             self,
-            textvariable=self.left_text,
+            textvariable=self.cod2,
             font=stby_font,
             background="black",
-            fg="white"
+            fg="cyan"
         )
-        self.right_text_label = Label(
-            self,
-            textvariable=self.right_text,
-            font=stby_font,
-            background="black",
-            fg="white"
-        )
-        self.grid_columnconfigure((0,2), weight=1)
-        self.grid_columnconfigure(1, weight=5)
+
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight= 1)
-        self.title_label.grid(row=0, column=1, sticky='nswe')
-        self.left_text_label.grid(row=0, column=0, sticky='nswe')
-        self.right_text_label.grid(row=0, column=2, sticky='nswe')
+        self.cod1.grid(row=0, column=0, sticky=align1)
+        self.cod2.grid(row=0, column=1, sticky=align2)
+
+        self.grid(sticky='nsew')
+
+    def update_labels(self):
+            pass
 
 class Test_small_box(Frame):
     def __init__(self, root, title, description=""):
@@ -1889,7 +2131,7 @@ class SetaNivel4:
         
         # Cores padrão ou personalizadas (vermelho, amarelo, verde)
         if cores is None:
-            self.cores = ["#FFFFFF","#FFFFFF", '#FFFFFF', '#FFFFFF']
+            self.cores = ["cyan","cyan", 'cyan', 'cyan']
         else:
             self.cores = cores
         
@@ -1965,7 +2207,7 @@ class SetaNivel3:
         
         # Cores padrão ou personalizadas (vermelho, amarelo, verde)
         if cores is None:
-            self.cores = ["#FFFFFF","#FFFFFF", '#FFFFFF']
+            self.cores = ["cyan","cyan", "cyan"]
         else:
             self.cores = cores
         
@@ -2124,6 +2366,42 @@ class SetaNivel2:
         """Retorna o nível atual"""
         return self.nivel
 
+class Imagem:
+    def __init__(self, parent, x, y, caminho_imagem, largura=40, altura=40):
+        self.parent = parent
+        self.x = x
+        self.y = y
+        self.largura = largura
+        self.altura = altura
+        self.caminho_imagem = caminho_imagem
+        
+        self.canvas = Canvas(
+            parent,
+            width=largura,
+            height=altura,
+            bg='black',
+            highlightthickness=0
+        )
+        self.canvas.place(x=x, y=y)
+        
+        # Carregar e redimensionar imagem
+        self.imagem = None
+        self.carregar_imagem(caminho_imagem)
+    
+    def carregar_imagem(self, caminho):
+        """Carrega e redimensiona a imagem"""
+        img = Image.open(caminho)
+        img = img.resize((self.largura, self.altura), Image.Resampling.LANCZOS)
+        self.imagem = ImageTk.PhotoImage(img)
+        
+        # Atualizar canvas
+        self.canvas.delete("all")
+        self.canvas.create_image(
+            self.largura//2, self.altura//2,
+            image=self.imagem,
+            anchor='center'
+        )
+ 
 
 root = Tk()
 root.title("Simulador RMS")
@@ -2170,7 +2448,6 @@ cod_font = Font(
 )
 
 # Load image
-# rms_image = ImageTk.PhotoImage(Image.open("Fundo_completo_11.jpeg"))    # Desenho
 rms_image = ImageTk.PhotoImage(Image.open("imagens/Moldura_fundo.png"))   # Textura real
 rms_label = Label(root, image=rms_image)
 rms_label.pack()
@@ -2192,15 +2469,15 @@ pino_left_img = PhotoImage(file="imagens/toggle_esq.png")
 pino_right_img = PhotoImage(file="imagens/toggle_dir.png")
 plus = PhotoImage(file="imagens/seta_horario.png")
 minus = PhotoImage(file="imagens/seta_antihorario.png")
-page_1_2 = PhotoImage(file="imagens/page_1_2.png")
-page_2_2 = PhotoImage(file="imagens/page_2_2.png")
-page_1_3 = PhotoImage(file="imagens/page_1_3.png")
-page_2_3 = PhotoImage(file="imagens/page_2_3.png")
-page_3_3 = PhotoImage(file="imagens/page_3_3.png")
-page_1_4 = PhotoImage(file="imagens/page_1_4.png")
-page_2_4 = PhotoImage(file="imagens/page_2_4.png")
-page_3_4 = PhotoImage(file="imagens/page_3_4.png")
-page_4_4 = PhotoImage(file="imagens/page_4_4.png")
+page_1_2 = PhotoImage(file="imagens/PAG_1_2.png")
+page_2_2 = PhotoImage(file="imagens/PAG_2_2.png")
+page_1_3 = PhotoImage(file="imagens/PAG_1_3.png")
+page_2_3 = PhotoImage(file="imagens/PAG_2_3.png")
+page_3_3 = PhotoImage(file="imagens/PAG_3_3.png")
+page_1_4 = PhotoImage(file="imagens/PAG_1_4.png")
+page_2_4 = PhotoImage(file="imagens/PAG_2_4.png")
+page_3_4 = PhotoImage(file="imagens/PAG_3_4.png")
+page_4_4 = PhotoImage(file="imagens/PAG_4_4.png")
 
 widget_page_1_2 = Label(root, image=page_1_2, background="#000000")
 widget_page_2_2 = Label(root, image=page_2_2, background="#000000")
@@ -2303,6 +2580,38 @@ advanced_page_vhf_1 = Frame(
     bg="black",
 )
 
+channels_vhf_1 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_vhf_2 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_vhf_3 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_vhf_4 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
 advanced_page_vor_1 = Frame(
     root,
     width=screen_width,
@@ -2398,7 +2707,7 @@ uhf_advanced_1_6_cod1 = StringVar(value="")
 uhf_advanced_1_6_cod2 = StringVar(value="")
 uhf_advanced_1_6_cod3 = StringVar(value="")
 
-uhf_advanced_2_2_cod0 = StringVar(value="SELCAL")
+uhf_advanced_2_2_cod0 = StringVar(value="COMSEC")
 uhf_advanced_2_2_cod1 = StringVar(value="")
 uhf_advanced_2_2_cod2 = StringVar(value="")
 uhf_advanced_2_2_cod3 = StringVar(value="")
@@ -2767,6 +3076,18 @@ advanced_page_atc_1.rowconfigure((0, 1, 2, 3), weight=1)
 advanced_page_vhf_1.columnconfigure((0, 1), weight=1)
 advanced_page_vhf_1.rowconfigure((0, 1, 2, 3), weight=1)
 
+channels_vhf_1.columnconfigure((0, 1), weight=1)
+channels_vhf_1.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_vhf_2.columnconfigure((0, 1), weight=1)
+channels_vhf_2.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_vhf_3.columnconfigure((0, 1), weight=1)
+channels_vhf_3.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_vhf_4.columnconfigure((0, 1), weight=1)
+channels_vhf_4.rowconfigure((0, 1, 2, 3), weight=1)
+
 advanced_page_vor_1.columnconfigure((0, 1), weight=1)
 advanced_page_vor_1.rowconfigure((0, 1, 2, 3), weight=1)
 
@@ -2778,7 +3099,7 @@ test_page.rowconfigure((1, 2, 3, 4, 5, 6, 7), weight=1)
 # Define areas Main_box(self, root, ind, cod0, cod1, cod2, rspan, ncol, active, stby, bg)
 # set_label_cod(self, cod0, cod1, cod2, color, anchor)
 main_area_1 = Main_box(main_page, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
-main_area_1.set_label_cod2("PT", "white", "s")
+main_area_1.set_label_cod2("PT", "white", "center")
 main_area_2 = Main_box(main_page, hf_ind, hf_cod0, hf_cod1, hf_cod2, 1, 0, hf_active, hf_preset, "gray")
 main_area_3 = Main_box(main_page, atc_ind, atc_cod0, atc_cod1, atc_cod2, 1, 0, atc_active, atc_preset, "gray")
 main_area_3.set_label_cod1("ALT", "orange", "center")
@@ -2787,7 +3108,7 @@ main_area_5 = Main_box(main_page, vor_ind, vor_cod0, vor_cod1, vor_cod2, 1, 1, v
 main_area_6 = Main_box(main_page, adf_ind, adf_cod0, adf_cod1, adf_cod2, 1, 1, adf_active, adf_preset, "gray")
 
 advanced_area_uhf_1_1 = Main_box(advanced_page_uhf_1, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
-advanced_area_uhf_1_1.set_label_cod2("PT", "white", "s")
+advanced_area_uhf_1_1.set_label_cod2("PT", "white", "center")
 advanced_area_uhf_1_2 = Advanced_box(advanced_page_uhf_1, uhf_advanced_1_2_cod0, uhf_advanced_1_2_cod1, uhf_advanced_1_2_cod2, uhf_advanced_1_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_uhf_1_2.set_label_cod1("HI", "cyan", "w")
 advanced_area_uhf_1_2_nivel = BarraNivel(advanced_area_uhf_1_2, 150, 20, 25, 75)
@@ -2807,7 +3128,7 @@ advanced_area_uhf_1_6.set_label_cod1("OFF", "cyan", "e")
 advanced_area_uhf_1_6.set_label_cod2("\x20OFF\n\x20CST\nSHIP", "white", "e")
 
 advanced_area_uhf_2_1 = Main_box(advanced_page_uhf_2, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
-advanced_area_uhf_2_1.set_label_cod2("PT", "white", "s")
+advanced_area_uhf_2_1.set_label_cod2("PT", "white", "center")
 advanced_area_uhf_2_2 = Advanced_box(advanced_page_uhf_2, uhf_advanced_2_2_cod0, uhf_advanced_2_2_cod1, uhf_advanced_2_2_cod2, uhf_advanced_2_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_uhf_2_2.set_label_cod1("PT", "cyan", "w")
 advanced_area_uhf_2_3 = Advanced_box(advanced_page_uhf_2, uhf_advanced_2_3_cod0, uhf_advanced_2_3_cod1, uhf_advanced_2_3_cod2, uhf_advanced_2_3_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
@@ -2822,6 +3143,7 @@ advanced_area_uhf_2_5.set_label_cod1("---", "cyan", "e")
 advanced_area_uhf_2_6 = Advanced_box(advanced_page_uhf_2, uhf_advanced_2_6_cod2, uhf_advanced_2_6_cod3, uhf_advanced_2_6_cod0, uhf_advanced_2_6_cod1,  1, 2, 'nsew', 'nsew', "gray", 1)
 
 advanced_area_uhf_3_1 = Main_box(advanced_page_uhf_3, uhf_ind, uhf_cod0, uhf_cod1, uhf_cod2,  1, 0, uhf_active, uhf_preset, "gray")
+advanced_area_uhf_3_1.set_label_cod2("PT", "white", "center")
 advanced_area_uhf_3_2 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_2_cod0, uhf_advanced_3_2_cod1, uhf_advanced_3_2_cod2, uhf_advanced_3_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_uhf_3_3 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_3_cod0, uhf_advanced_3_3_cod1, uhf_advanced_3_3_cod2, uhf_advanced_3_3_cod3,  2, 1, 'nsew', 'nsew', "gray", 0)
 advanced_area_uhf_3_3.set_label_cod0("CH", "white", "w")
@@ -2833,7 +3155,6 @@ advanced_area_uhf_3_6.set_label_cod0("8.33", "white", "e")
 advanced_area_uhf_3_6.set_label_cod1("OFF", "cyan", "e")
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 advanced_area_hf_1_1 = Main_box(advanced_page_hf_1, hf_ind, hf_cod0, hf_cod1, hf_cod2, 1, 0, hf_active, hf_preset, "gray")
 # advanced_area_hf_1_1.set_label_cod2("PT", "white", "s")
@@ -2925,16 +3246,45 @@ advanced_area_vhf_1_3 = Advanced_box(advanced_page_vhf_1, vhf_advanced_1_3_cod0,
 # advanced_area_vhf_1_3_selecao = SetaNivel3(advanced_area_vhf_1_3, 120, 23, 25, 73, 0)
 advanced_area_vhf_1_4 = Advanced_box(advanced_page_vhf_1, vhf_advanced_1_4_cod2, vhf_advanced_1_4_cod3, vhf_advanced_1_4_cod0, vhf_advanced_1_4_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
 advanced_area_vhf_1_4.set_label_cod0("8.33", "white", "e")
-advanced_area_vhf_1_4.set_label_cod1("ON", "cyan", "e")
+advanced_area_vhf_1_4.set_label_cod1("OFF", "cyan", "e")
 advanced_area_vhf_1_5 = Advanced_box(advanced_page_vhf_1, vhf_advanced_1_5_cod2, vhf_advanced_1_5_cod3, vhf_advanced_1_5_cod0, vhf_advanced_1_5_cod1,  1, 2, 'nsew', 'nsew', "gray", 1)
 # advanced_area_vhf_1_5_nivel = BarraNivel(advanced_area_vhf_1_5, 50, 20, 25, 75)
 advanced_area_vhf_1_5.set_label_cod0("TEST", "white", "e")
 # advanced_area_vhf_1_5.set_label_cod1("LOW", "cyan", "e")
-advanced_area_vhf_1_6 = Advanced_box(advanced_page_vhf_1, vhf_advanced_1_6_cod2, vhf_advanced_1_6_cod3, vhf_advanced_1_6_cod0, vhf_advanced_1_6_cod1,  1, 2, 'nsew', 'nsew', "gray", 1)
-# advanced_area_vhf_1_6_selecao = SetaNivel3(advanced_area_vhf_1_6, 90, 20, 25, 75, 1)
-advanced_area_vhf_1_6.set_label_cod0("CH", "yellow", "e")
+advanced_area_vhf_1_6 = Advanced_box(advanced_page_vhf_1, vhf_advanced_1_6_cod2, vhf_advanced_1_6_cod3, vhf_advanced_1_6_cod0, vhf_advanced_1_6_cod1,  2, 2, 'nsew', 'nsew', "gray", 1)
+advanced_area_vhf_1_6_imagem = Imagem(advanced_area_vhf_1_6, 185, 38, "imagens/PAG_4.png", 32, 41)
+advanced_area_vhf_1_6.set_label_cod0("CH\x20\x20", "yellow", "e")
 # advanced_area_vhf_1_6.set_label_cod1("INH", "cyan", "e")
 # advanced_area_vhf_1_6.set_label_cod2("\x20OFF\n\x20CST\nSHIP", "white", "e")
+
+channels_vhf_1_1 = Channels(channels_vhf_1, StringVar(value="01"), StringVar(value="140.00"))
+channels_vhf_1_2 = Channels(channels_vhf_1, StringVar(value="02"), StringVar(value="140.00"))
+channels_vhf_1_3 = Channels(channels_vhf_1, StringVar(value="03"), StringVar(value="140.00"))
+channels_vhf_1_4 = Channels(channels_vhf_1, StringVar(value="04"), StringVar(value="140.00"))
+channels_vhf_1_5 = Channels(channels_vhf_1, StringVar(value="05"), StringVar(value="140.00"))
+channels_vhf_1_6 = Channels(channels_vhf_1, StringVar(value="06"), StringVar(value="140.00"))
+
+channels_vhf_2_1 = Channels(channels_vhf_2, StringVar(value="07"), StringVar(value="140.00"))
+channels_vhf_2_2 = Channels(channels_vhf_2, StringVar(value="08"), StringVar(value="140.00"))
+channels_vhf_2_3 = Channels(channels_vhf_2, StringVar(value="09"), StringVar(value="140.00"))
+channels_vhf_2_4 = Channels(channels_vhf_2, StringVar(value="10"), StringVar(value="140.00"))
+channels_vhf_2_5 = Channels(channels_vhf_2, StringVar(value="11"), StringVar(value="140.00"))
+channels_vhf_2_6 = Channels(channels_vhf_2, StringVar(value="12"), StringVar(value="140.00"))
+
+channels_vhf_3_1 = Channels(channels_vhf_3, StringVar(value="13"), StringVar(value="140.00"))
+channels_vhf_3_2 = Channels(channels_vhf_3, StringVar(value="14"), StringVar(value="140.00"))
+channels_vhf_3_3 = Channels(channels_vhf_3, StringVar(value="15"), StringVar(value="140.00"))
+channels_vhf_3_4 = Channels(channels_vhf_3, StringVar(value="16"), StringVar(value="140.00"))
+channels_vhf_3_5 = Channels(channels_vhf_3, StringVar(value="17"), StringVar(value="140.00"))
+channels_vhf_3_6 = Channels(channels_vhf_3, StringVar(value="18"), StringVar(value="140.00"))
+
+channels_vhf_4_1 = Channels(channels_vhf_4, StringVar(value="19"), StringVar(value="140.00"))
+channels_vhf_4_2 = Channels(channels_vhf_4, StringVar(value="20"), StringVar(value="140.00"))
+channels_vhf_4_3 = Channels(channels_vhf_4, StringVar(value=""), StringVar(value=""))
+channels_vhf_4_4 = Channels(channels_vhf_4, StringVar(value=""), StringVar(value=""))
+channels_vhf_4_5 = Channels(channels_vhf_4, StringVar(value=""), StringVar(value=""))
+channels_vhf_4_6 = Channels(channels_vhf_4, StringVar(value=""), StringVar(value=""))
+
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -2989,17 +3339,6 @@ advanced_area_adf_1_6.set_label_cod0("TEST", "white", "e")
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-
-test_area_0 = Test_big_box(test_page, test_page_title)
-test_area_1 = Test_small_box(test_page, test_page_atc_title, test_page_atc_description)
-test_area_2 = Test_small_box(test_page, test_page_vl_title, test_page_vl_description)
-test_area_3 = Test_small_box(test_page, test_page_adf_title, test_page_adf_description)
-test_area_4 = Test_small_box(test_page, test_page_dme_title, test_page_dme_description)
-test_area_5 = Test_small_box(test_page, test_page_uhf_title, test_page_uhf_description)
-test_area_6 = Test_small_box(test_page, test_page_hf_title, test_page_hf_description)
-test_area_7 = Test_small_box(test_page, test_page_vhf_title, test_page_vhf_description)
-test_area_8 = Test_big_box(test_page, test_page_test, test_page_left_arrow, test_page_right_arrow)
-test_area_9 = Test_big_box(test_page, test_page_valid, test_page_run)
 
 temporary_area_1 = Main_box(temporary_page, page_not_developed_pt1, page_not_developed_pt2, page_not_developed_pt1, page_not_developed_pt2,  1, 0, page_not_developed_pt2, page_not_developed_pt2, "cyan")
 
@@ -3065,6 +3404,34 @@ advanced_area_vhf_1_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_vhf_1_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_vhf_1_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
 
+channels_vhf_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_1_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_1_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_1_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_vhf_2_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_2_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_2_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_2_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_2_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_2_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_vhf_3_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_3_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_3_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_3_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_3_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_3_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_vhf_4_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_4_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_4_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_vhf_4_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_4_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_vhf_4_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
 advanced_area_vor_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_vor_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_vor_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
@@ -3078,17 +3445,6 @@ advanced_area_adf_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_adf_1_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_adf_1_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_adf_1_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
-
-test_area_0.grid(row=0, column=0, sticky='nsew')
-test_area_1.grid(row=1, column=0, sticky='nsew')
-test_area_2.grid(row=2, column=0, sticky='nsew')
-test_area_3.grid(row=3, column=0, sticky='nsew')
-test_area_4.grid(row=4, column=0, sticky='nsew')
-test_area_5.grid(row=5, column=0, sticky='nsew')
-test_area_6.grid(row=6, column=0, sticky='nsew')
-test_area_7.grid(row=7, column=0, sticky='nsew')
-test_area_8.grid(row=8, column=0, sticky='nsew')
-test_area_9.grid(row=9, column=0, sticky='nsew')
 
 temporary_area_1.grid(row=0, column=0, sticky='nsew')
 
