@@ -18,6 +18,9 @@ boot_screen_active = False      # Controla se a tela de boot está ativa
 boot_start_time = None          # Armazena quando a tela de boot foi mostrada
 delayinit = 2
 radio_active = [True, True, True, True, True, True]
+radio_freq_active = [0, 0, 0, 0, 0, 0]
+radio_channel_active = [[False, False, False, False, False, False],
+                 [False, False, False, False, False, False]]
 
 # Manual constants
 # Dimensões da tela
@@ -49,6 +52,50 @@ def log():
     print("current_page", current_page)
     print("pressed_side_btn", pressed_side_btn)
     print("transponder_indicator", transponder_indicator)
+
+def toggle_frequency_channel():
+    global radio_channel_active, active_area    
+    global uhf_active, hf_active, atc_active, vhf_active, vor_active, adf_active
+    global uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
+    global uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    global uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    global uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    global uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    global active_vars, stby_vars
+
+    # Mapping variable values
+    freq_vars = [[
+        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    ], [
+        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    ]]
+    ch_vars = [[
+        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    ], [
+        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    ]]
+
+    areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
+
+    print("--------in toggle")
+
+    if active_area == 4:
+        if radio_channel_active[1-radio_freq_active[active_area-1]][active_area-1]:
+            # ch to freq
+            stby_vars[active_area-1].set(freq_vars[1-radio_freq_active[active_area-1]][active_area-1].get())
+            radio_channel_active[1-radio_freq_active[active_area-1]][active_area-1] = False
+            
+        else:
+            # freq to ch
+            stby_vars[active_area-1].set(ch_vars[1-radio_freq_active[active_area-1]][active_area-1].get())
+            radio_channel_active[1-radio_freq_active[active_area-1]][active_area-1] = True
+            
+    update_channel_seta()
+
+    print("radio_channel_active")
+    print(radio_channel_active)
+    print("1-radio_freq_active[active_area-1]")
+    print(1-radio_freq_active[active_area-1])
 
 # Reset all variables to default values
 def set_default():
@@ -188,27 +235,48 @@ def forget_transponder_indicators():
 
 # todo
 def get_transponder_indicator(ajuste_x=0, ajuste_y=0):
-    global transponder_indicator
+    global transponder_indicator, current_level
 
-    if transponder_indicator == 0:
-        forget_transponder_indicators()
-        return
-    
-    if transponder_indicator == 1:
-        forget_transponder_indicators()
-        transponder_canva_1.place(x=363+ajuste_x, y=531+ajuste_y)
+    if current_level == 1:
+        
+        if transponder_indicator == 0:
+            forget_transponder_indicators()
+            return
+        
+        if transponder_indicator == 1:
+            forget_transponder_indicators()
+            transponder_canva_1.place(x=363+ajuste_x, y=531+ajuste_y)
 
-    if transponder_indicator == 2:
-        forget_transponder_indicators()
-        transponder_canva_2.place(x=382+ajuste_x, y=531+ajuste_y)
+        if transponder_indicator == 2:
+            forget_transponder_indicators()
+            transponder_canva_2.place(x=382+ajuste_x, y=531+ajuste_y)
 
-    if transponder_indicator == 3:
-        forget_transponder_indicators()
-        transponder_canva_3.place(x=402+ajuste_x, y=531+ajuste_y)
+        if transponder_indicator == 3:
+            forget_transponder_indicators()
+            transponder_canva_3.place(x=402+ajuste_x, y=531+ajuste_y)
 
-    if transponder_indicator == 4:
-        forget_transponder_indicators()
-        transponder_canva_4.place(x=421+ajuste_x, y=531+ajuste_y)
+        if transponder_indicator == 4:
+            forget_transponder_indicators()
+            transponder_canva_4.place(x=421+ajuste_x, y=531+ajuste_y)
+
+    if current_level == 2:
+
+        if transponder_indicator == 1:
+            forget_transponder_indicators()
+            transponder_canva_1.place(x=363+ajuste_x, y=283+ajuste_y)
+
+        if transponder_indicator == 2:
+            forget_transponder_indicators()
+            transponder_canva_2.place(x=382+ajuste_x, y=283+ajuste_y)
+
+        if transponder_indicator == 3:
+            forget_transponder_indicators()
+            transponder_canva_3.place(x=402+ajuste_x, y=283+ajuste_y)
+
+        if transponder_indicator == 4:
+            forget_transponder_indicators()
+            transponder_canva_4.place(x=421+ajuste_x, y=283+ajuste_y)
+
 
 # Function to clear the page indicator image
 # This function must always be called before placing a new page icon
@@ -270,22 +338,33 @@ def update_page_icon():
                 place_page_icon(widget_page_4_4)
 
 def update_precision_radio():
-    global advanced_area_vhf_1_4, vhf_precision_radio, current_radio
+    global advanced_area_vhf_1_4, vhf_precision_radio, current_radio, radio_freq_active, radio_channel_active, active_vars
 
     if advanced_area_vhf_1_4.get_label_cod1() == "ON":
         if current_level == 1:    
             vhf_precision_radio.place_forget()
-            print("mudar para 600---------------------------------------------")
-            vhf_precision_radio.place(x=688, y=183)
-            vhf_precision_radio.lift()
+            if not "CH" in active_vars[3].get():
+                print("mudar para 600---------------------------------------------")
+                vhf_precision_radio.place(x=688, y=183)
+                vhf_precision_radio.lift()
         elif current_level == 2 and current_radio == 4:   
             vhf_precision_radio.place_forget()
-            vhf_precision_radio.place(x=460, y=183)
-            vhf_precision_radio.lift()
+            if not "CH" in active_vars[3].get():
+                vhf_precision_radio.place(x=460, y=183)
+                vhf_precision_radio.lift()
         elif current_level == 2 and current_level != 4:
+            vhf_precision_radio.place_forget()
+        elif current_level == 3:
             vhf_precision_radio.place_forget()
     elif advanced_area_vhf_1_4.get_label_cod1() == "OFF":
         vhf_precision_radio.place_forget()
+
+def update_channel_seta():
+        global stby_vars
+        if "CH" in stby_vars[3].get():
+            main_area_4_seta.mostrar()
+        else:
+            main_area_4_seta.esconder()
 
 
 # Function to update the content os the screen given its global variables
@@ -363,7 +442,7 @@ def update_screen():
                 forget_all_pages()
                 update_page_icon()
                 advanced_page_atc_1.place(x=x_screen, y=y_screen)
-                get_transponder_indicator(0, -248)
+                get_transponder_indicator(0, 0)
                 activate_advanced(1)
                 
         if current_radio == 4:
@@ -479,6 +558,7 @@ def change_frequency(is_outer_knob, is_increment):
     global active_area, zeroise_value, emergency_value, transponder_indicator
 
     areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
+    ch = False
     print("set frequencia")
     if zeroise_value:
         return 
@@ -489,6 +569,7 @@ def change_frequency(is_outer_knob, is_increment):
         if active_area == 1 and emergency_value != True:
             delta = 1 if is_outer_knob else 0.05
             stby_var = uhf_preset
+            dado_var = uhf_preset
             decimals = 2
             min_freq = 225.00
             max_freq = 399.75
@@ -509,6 +590,7 @@ def change_frequency(is_outer_knob, is_increment):
         elif active_area == 2 and emergency_value != True:
             delta = 0.1 if is_outer_knob else 0.001
             stby_var = hf_preset
+            dado_var = hf_preset
             decimals = 3
             min_freq = 2.000
             max_freq = 29.000
@@ -529,6 +611,8 @@ def change_frequency(is_outer_knob, is_increment):
             else:
                 # Set stby_var for frequency manipulation
                 stby_var = atc_preset
+                
+                dado_var = atc_preset
 
                 # Change the digit based on transponder_indicator
                 current_value = int(stby_var.get())  # Convert to integer for manipulation
@@ -551,6 +635,7 @@ def change_frequency(is_outer_knob, is_increment):
                 areas[active_area - 1].update_labels()
 
             stby_var = atc_preset 
+            dado_var = atc_preset 
             decimals = 0
             min_freq = 0000
             max_freq = 7999
@@ -558,20 +643,61 @@ def change_frequency(is_outer_knob, is_increment):
             return
 
         elif active_area == 4 and emergency_value != True:
-            delta = 1 if is_outer_knob else 0.25
-            stby_var = vhf_preset
-            decimals = 2
-            min_freq = 118.00
-            max_freq = 151.80
+            if radio_freq_active[active_area-1] == 0:
+                if radio_channel_active[1][active_area-1]:
+                    # ajustar ch2
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = vhf_ch2
+                    stby_var = vhf_preset
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq2
+                    delta = 1 if is_outer_knob else 0.25
+                    dado_var = vhf_freq2
+                    stby_var = vhf_preset
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 151.80
+            else:
+                if radio_channel_active[0][active_area-1]:
+                    # ajustar ch1
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = vhf_ch1
+                    stby_var = vhf_preset
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq1
+                    delta = 1 if is_outer_knob else 0.25
+                    dado_var = vhf_freq1
+                    stby_var = vhf_preset
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 151.80
+
+            # delta = 1 if is_outer_knob else 0.25
+            # stby_var = vhf_preset
+            # decimals = 2
+            # min_freq = 118.00
+            # max_freq = 151.80
         elif active_area == 5:
             delta = 1 if is_outer_knob else 0.25
             stby_var = vor_preset
+            dado_var = vor_preset 
             decimals = 2
             min_freq = 108.00
             max_freq = 118.00
         elif active_area == 6:
             delta = 1 if is_outer_knob else 0.25
             stby_var = adf_preset
+            dado_var = adf_preset
             decimals = 1
             min_freq = 100.0
             max_freq = 400.0
@@ -579,6 +705,24 @@ def change_frequency(is_outer_knob, is_increment):
             # Default case if no active area is matched
             return
 
+    if ch:
+
+        current_value = int(stby_var.get().replace("CH", ""))
+        new_value = current_value + delta if is_increment else current_value - delta
+
+        if new_value > max_freq:
+            new_value = min_freq
+        elif new_value < min_freq:
+            new_value = max_freq
+
+        # Format the new value with the specified number of decimal places
+
+        formatted_value = f"CH{new_value:02d}"
+
+        stby_var.set(formatted_value)
+        dado_var.set(formatted_value)
+        areas[active_area - 1].update_labels()
+    else:
         current_value = float(stby_var.get())
         new_value = current_value + delta if is_increment else current_value - delta
 
@@ -592,9 +736,11 @@ def change_frequency(is_outer_knob, is_increment):
         #     new_value = max_freq_1
 
         # Format the new value with the specified number of decimal places
+
         formatted_value = f"{new_value:.{decimals}f}"
 
         stby_var.set(formatted_value)
+        dado_var.set(formatted_value)
         areas[active_area - 1].update_labels()
 
 
@@ -1344,32 +1490,86 @@ def key_up4_push():
         update_screen()
     
 # Function do switch the value between active and preset(stby) values
-def switch_active_and_preset(active_vars, stby_vars, idx):
+def switch_active_and_preset(active_vars, stby_vars, freq1_vars, freq2_vars, ch1_vars, ch2_vars, idx):
     print("In switch active preset")
-    current_value = active_vars[idx].get()
-    standby_value = stby_vars[idx].get()
+
+
+
+
+    if radio_freq_active[idx] == 0:
+        if radio_channel_active[0][idx]:
+            # ch1 -> stby
+            current_value = ch1_vars[idx].get()
+        else:
+            # freq1 -> stby
+            current_value = freq1_vars[idx].get()
+
+        if radio_channel_active[1][idx]:
+            # ch2 -> active
+            standby_value = ch2_vars[idx].get()
+        else:
+            # freq2 -> active
+            standby_value = freq2_vars[idx].get()      
+    else:
+        if radio_channel_active[0][idx]:
+            # ch1 -> active
+            standby_value = ch1_vars[idx].get()
+        else:
+            # freq1 -> active
+            standby_value = freq1_vars[idx].get()
+        if radio_channel_active[1][idx]:
+            # ch2 -> stby
+            current_value = ch2_vars[idx].get()
+        else:
+            # freq2 -> stby
+            current_value = freq2_vars[idx].get()
+
+
+    radio_freq_active[idx] = 1 - radio_freq_active[idx]
 
     active_vars[idx].set(standby_value)
     stby_vars[idx].set(current_value)
 
+    print(radio_freq_active)
+
+    print(standby_value+" ac") #active
+    print(current_value+" st") #standby
+
+    print("--------")
+    update_precision_radio()
+    update_channel_seta()
+    print("-------- update precision/channel seta")
+      
+    
+
 # Function 
 def toggle_area(side_key_number):
     global active_area, emergency_value, zeroise_value
-    global uhf_active, uhf_preset, hf_active, hf_preset, atc_active, atc_preset
-    global vhf_active, vhf_preset, vor_active, vor_preset, adf_active, adf_preset
+    global uhf_active, hf_active, atc_active, vhf_active, vor_active, adf_active
+    global uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
+    global uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    global uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    global uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    global uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    global active_vars, stby_vars
 
     # Mapping variable values
-    active_vars = [
-        uhf_active, hf_active, atc_active, vhf_active, vor_active, adf_active
+
+    freq1_vars = [
+        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
     ]
-    stby_vars = [
-        uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
+    freq2_vars = [
+        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    ]
+    ch1_vars = [
+        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    ]
+    ch2_vars = [
+        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
     ]
 
     if active_area < 1 or active_area > 7 or zeroise_value:
         return
-    
-    
 
     if emergency_value:
         if side_key_number == 0:
@@ -1377,7 +1577,7 @@ def toggle_area(side_key_number):
                 return
             else:
                 idx = active_area - 1
-                switch_active_and_preset(active_vars, stby_vars, idx)
+                switch_active_and_preset(active_vars, stby_vars, freq1_vars, freq2_vars, ch1_vars, ch2_vars, idx)
                 return
         elif side_key_number in {1, 2, 3, 4}:
             active_area = side_key_number
@@ -1386,7 +1586,7 @@ def toggle_area(side_key_number):
         else:
             if active_area == side_key_number:
                 idx = active_area - 1
-                switch_active_and_preset(active_vars, stby_vars, idx)
+                switch_active_and_preset(active_vars, stby_vars, freq1_vars, freq2_vars, ch1_vars, ch2_vars, idx)
                 return
             else:
                 active_area = side_key_number
@@ -1411,7 +1611,7 @@ def toggle_area(side_key_number):
             get_transponder_indicator()
     else:
         idx = active_area - 1
-        switch_active_and_preset(active_vars, stby_vars, idx)
+        switch_active_and_preset(active_vars, stby_vars, freq1_vars, freq2_vars, ch1_vars, ch2_vars, idx)
 
 def get_next_option(current_value, options):
     # Returns the next non-empty option value from the provided list of options
@@ -1874,6 +2074,9 @@ class Main_box(Frame):
 
     def get_label_active(self):
         return self.active_label.cget("text")
+    
+    def get_label_standby(self):
+        return self.stby_label.cget("text")
 
     def set_label_active(self, active_label, color, anchor):
         self.active_label.config(textvariable=StringVar(value=active_label))
@@ -1881,7 +2084,7 @@ class Main_box(Frame):
         self.active_label.config(anchor=anchor)
 
     def set_label_standby(self, stby_label, color, anchor):
-        self.stby_label.config(textvariable=StringVar(value=stby_label))
+        self.stby_label.config(textvariable=stby_label)
         self.stby_label.config(fg=color)
         self.stby_label.config(anchor=anchor)
 
@@ -2700,6 +2903,59 @@ class Imagem:
             anchor='center'
         )
  
+class SetaIndicador:
+    """Classe para criar uma seta indicadora com contorno retangular"""
+    def __init__(self, parent, x, y, tamanho=1.0):
+        # Coordenadas base (tamanho 35x25)
+        base_largura = 35
+        base_altura = 25
+        
+        largura = int(base_largura * tamanho)
+        altura = int(base_altura * tamanho)
+    
+        self.canvas = Canvas(
+            parent,
+            width=largura,
+            height=altura,
+            bg='black',
+            highlightthickness=0
+        )
+
+        # Coordenadas fixas proporcionais
+        fator = tamanho
+        
+        # Retângulo externo
+        self.canvas.create_rectangle(
+            int(1 * fator), int(1 * fator), 
+            int(33 * fator), int(23 * fator), 
+            outline='cyan', width=1, fill='black'
+        )
+        
+        # Haste (retângulo)
+        self.canvas.create_rectangle(
+            int(8 * fator), int(9 * fator), 
+            int(22 * fator), int(15 * fator), 
+            outline='cyan', fill='cyan', width=0
+        )
+        
+        # Ponta (triângulo)
+        self.canvas.create_polygon(
+            int(22 * fator), int(7 * fator),   # Superior
+            int(28 * fator), int(12 * fator),  # Ponta
+            int(22 * fator), int(17 * fator),  # Inferior
+            outline='cyan', fill='cyan', width=0
+        )
+        
+        self.x = x
+        self.y = y
+
+    
+    def mostrar(self):
+        self.canvas.place(x=self.x, y=self.y)
+    
+    def esconder(self):
+        self.canvas.place_forget()
+
 
 root = Tk()
 root.title("Simulador RMS")
@@ -2752,7 +3008,7 @@ rms_label.pack()
 
 # Define button images
 primary_btn_img = PhotoImage(file="imagens/btn_generico_80x52.png")
-primary_btn_pressed_img = PhotoImage(file="imagens/bt_ativo.png")
+primary_btn_pressed_img = PhotoImage(file="imagens/btn_generico-azul_80x52.png")
 atc_btn_img = PhotoImage(file="imagens/bt_atc.png")
 ch_btn_img = PhotoImage(file="imagens/bt_ch.png")
 idt_btn_img = PhotoImage(file="imagens/bt_idt.png")
@@ -2981,6 +3237,10 @@ var_advanced_adf_option3 = StringVar(value="")
 uhf_ind = StringVar(value="V\n/\nU")
 uhf_active = StringVar(value="120.15")
 uhf_preset = StringVar(value="118.15")
+uhf_freq1 = StringVar(value="139.50")  
+uhf_freq2 = StringVar(value="136.00")
+uhf_ch1 = StringVar(value="01")
+uhf_ch2 = StringVar(value="02")
 uhf_cod0 = StringVar(value="")
 uhf_cod1 = StringVar(value="")
 uhf_cod2 = StringVar(value="")
@@ -3055,6 +3315,10 @@ hf_cod1 = StringVar(value="")
 hf_cod2 = StringVar(value="")
 hf_active = StringVar(value="03.601")
 hf_preset = StringVar(value="02.000")
+hf_freq1 = StringVar(value="139.50")  
+hf_freq2 = StringVar(value="136.00")
+hf_ch1 = StringVar(value="01")
+hf_ch2 = StringVar(value="02")
 #---------- hf ADVANCED -----------------------
 hf_advanced_1_2_cod0 = StringVar(value="SQL")
 hf_advanced_1_2_cod1 = StringVar(value="")
@@ -3127,6 +3391,10 @@ atc_cod1 = StringVar(value="")
 atc_cod2 = StringVar(value="")
 atc_active = StringVar(value="STBY")
 atc_preset = StringVar(value="2365")
+atc_freq1 = StringVar(value="139.50")  
+atc_freq2 = StringVar(value="136.00")
+atc_ch1 = StringVar(value="01")
+atc_ch2 = StringVar(value="02")
 #---------- ATC ADVANCED -----------------------
 atc_advanced_1_2_cod0 = StringVar(value="")
 atc_advanced_1_2_cod1 = StringVar(value="")
@@ -3155,6 +3423,11 @@ vhf_cod1 = StringVar(value="")
 vhf_cod2 = StringVar(value="")
 vhf_active = StringVar(value="139.50")  
 vhf_preset = StringVar(value="136.00")
+vhf_freq1 = StringVar(value="139.50")  
+vhf_freq2 = StringVar(value="136.00")
+vhf_ch1 = StringVar(value="CH01")
+vhf_ch2 = StringVar(value="CH01")
+
 #---------- VHF ADVANCED -----------------------
 vhf_advanced_1_2_cod0 = StringVar(value="")
 vhf_advanced_1_2_cod1 = StringVar(value="")
@@ -3197,7 +3470,7 @@ channel_vhf_17 = StringVar(value="140.00")
 channel_vhf_18 = StringVar(value="140.00")
 channel_vhf_19 = StringVar(value="140.00")
 channel_vhf_20 = StringVar(value="140.00")
-#--------------------------------------------------------------------
+#------------------VOR----------------------------------------
 
 vor_ind = StringVar(value="V\n/\nL")
 vor_cod0 = StringVar(value="")
@@ -3205,7 +3478,11 @@ vor_cod1 = StringVar(value="")
 vor_cod2 = StringVar(value="")
 vor_active = StringVar(value="112.60")
 vor_preset = StringVar(value="115.40")
-#---------- hf ADVANCED -----------------------
+vor_freq1 = StringVar(value="139.50")  
+vor_freq2 = StringVar(value="136.00")
+vor_ch1 = StringVar(value="01")
+vor_ch2 = StringVar(value="02")
+#---------- VOR ADVANCED -----------------------
 vor_advanced_1_2_cod0 = StringVar(value="")
 vor_advanced_1_2_cod1 = StringVar(value="")
 vor_advanced_1_2_cod2 = StringVar(value="")
@@ -3226,14 +3503,18 @@ vor_advanced_1_6_cod0 = StringVar(value="")
 vor_advanced_1_6_cod1 = StringVar(value="")
 vor_advanced_1_6_cod2 = StringVar(value="")
 vor_advanced_1_6_cod3 = StringVar(value="")
-#--------------------------------------------------------
+#------------ADF--------------------------------------------
 adf_ind = StringVar(value="A\nD\nF")
 adf_cod0 = StringVar(value="")
 adf_cod1 = StringVar(value="")
 adf_cod2 = StringVar(value="")
 adf_active = StringVar(value="430.0")
 adf_preset = StringVar(value="275.0") 
-#---------- hf ADVANCED -----------------------
+adf_freq1 = StringVar(value="139.50")  
+adf_freq2 = StringVar(value="136.00")
+adf_ch1 = StringVar(value="01")
+adf_ch2 = StringVar(value="02")
+#---------- ADF ADVANCED -----------------------
 adf_advanced_1_2_cod0 = StringVar(value="")
 adf_advanced_1_2_cod1 = StringVar(value="")
 adf_advanced_1_2_cod2 = StringVar(value="")
@@ -3254,7 +3535,18 @@ adf_advanced_1_6_cod0 = StringVar(value="")
 adf_advanced_1_6_cod1 = StringVar(value="")
 adf_advanced_1_6_cod2 = StringVar(value="")
 adf_advanced_1_6_cod3 = StringVar(value="")
+#--------------------LISTAS------------------------------------
+active_vars = [
+    uhf_active, hf_active, atc_active, vhf_active, vor_active, adf_active
+    ]
+stby_vars = [
+    uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
+]
 #--------------------------------------------------------
+
+
+
+
 uhf_sql_arrow_position = IntVar(value=0)
 uhf_mode_position = IntVar(value=0)
 uhf_aj_arrow_position = IntVar(value=0)
@@ -3425,6 +3717,7 @@ main_area_2 = Main_box(main_page, hf_ind, hf_cod0, hf_cod1, hf_cod2, 1, 0, hf_ac
 main_area_3 = Main_box(main_page, atc_ind, atc_cod0, atc_cod1, atc_cod2, 1, 0, atc_active, atc_preset, "gray")
 main_area_3.set_label_cod1("ALT", "orange", "center")
 main_area_4 = Main_box(main_page, vhf_ind, vhf_cod0, vhf_cod1, vhf_cod2, 1, 1, vhf_active, vhf_preset, "gray")
+main_area_4_seta = SetaIndicador(main_area_4, 5, 90, 0.8)
 main_area_5 = Main_box(main_page, vor_ind, vor_cod0, vor_cod1, vor_cod2, 1, 1, vor_active, vor_preset, "gray")
 main_area_6 = Main_box(main_page, adf_ind, adf_cod0, adf_cod1, adf_cod2, 1, 1, adf_active, adf_preset, "gray")
 
@@ -3798,7 +4091,7 @@ skl_4 = Btn(root, primary_btn_img, 150, 547, lambda: print("Testando 7"), lambda
 brt_button = Black_btn(root, off_btn_img, 130, 94, lambda: turn_on_off())
 Btn(root, pge_btn_img, 453, 67, lambda: key_up3_push())
 Btn(root, key_up4_btn_img, 558, 67, lambda: key_up4_push())
-Btn(root, seta_btn_img, 663, 67, lambda: print("seta btn"))
+Btn(root, seta_btn_img, 663, 67, lambda: toggle_frequency_channel())
 emergency_button = Btn(root, pino_left_img, 286, 50, lambda: emergency()) # Radio
 zeroise_button = Btn(root, pino_left_img, 789  , 50, lambda: zeroise())   # Zeroize
 
@@ -3807,7 +4100,7 @@ Btn(root, atc_btn_img, 269, 691, lambda: atc_btn_push())
 Btn(root, idt_btn_img, 373, 691, lambda: print("idt btn"))
 Btn(root, triangulo_01_btn_img, 475, 691, lambda: print("triangulo btn"))
 Btn(root, triangulo_02_btn_img, 578, 691, lambda: print("triangulo btn"))
-Btn(root, ch_btn_img, 681, 691, lambda: log())
+Btn(root, ch_btn_img, 681, 691, lambda: toggle_frequency_channel())
 
 
 # Temporary buttons
