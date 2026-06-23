@@ -61,22 +61,8 @@ def toggle_frequency_channel():
     global uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
     global uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
     global uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
-    global active_vars, stby_vars
-
-    # Mapping variable values
-    freq_vars = [[
-        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
-    ], [
-        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
-    ]]
-    ch_vars = [[
-        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
-    ], [
-        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
-    ]]
-
-    areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
-
+    global active_vars, stby_vars, freq_vars, ch_vars, areas
+  
     print("--------in toggle")
 
     if active_area == 4:
@@ -92,10 +78,69 @@ def toggle_frequency_channel():
             
     update_channel_seta()
 
+
     print("radio_channel_active")
     print(radio_channel_active)
     print("1-radio_freq_active[active_area-1]")
     print(1-radio_freq_active[active_area-1])
+
+def toggle_frequency_cst_ship():
+    global radio_channel_active, active_area    
+    global uhf_active, hf_active, atc_active, vhf_active, vor_active, adf_active
+    global uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
+    global uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    global uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    global uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    global uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    global active_vars, stby_vars, freq_vars, ch_vars, areas
+  
+    print("--------in toggle cst ship")
+
+    print(radio_channel_active)
+    if advanced_area_uhf_1_6.get_label_cod1() == "CST":
+        #radio_freq_active[0/1,0,0,0,0,0] == 0 = 1/2, 1 = 2/1
+        # freq to cst
+        if radio_freq_active[0]:
+
+            active_vars[0].set("⚓"+ch_vars[0][0].get()+"C")
+            stby_vars[0].set("⚓"+ch_vars[1][0].get()+"C")
+        else:
+            active_vars[0].set("⚓"+ch_vars[1][0].get()+"C")
+            stby_vars[0].set("⚓"+ch_vars[0][0].get()+"C")
+        
+        radio_channel_active[0][0] = True
+        radio_channel_active[1][0] = True
+
+    elif advanced_area_uhf_1_6.get_label_cod1() == "SHIP":
+        #cst to ship
+        print("---------------------SHIP")
+        active_vars[0].set(active_vars[0].get().replace("C", "S"))
+        stby_vars[0].set(stby_vars[0].get().replace("C", "S"))
+    elif advanced_area_uhf_1_6.get_label_cod1() == "OFF":
+        #ship to off
+        if radio_freq_active[0]:
+            active_vars[0].set(freq_vars[0][0].get())
+            stby_vars[0].set(freq_vars[1][0].get())
+        else:
+            active_vars[0].set(freq_vars[1][0].get())
+            stby_vars[0].set(freq_vars[0][0].get())
+
+        radio_channel_active[0][0] = False
+        radio_channel_active[1][0] = False
+
+    print(radio_channel_active)
+    # elif advanced_area_uhf_1_6.get_label_cod1() == "SHIP":
+    #     # freq to ch
+    #     stby_vars[active_area-1].set(ch_vars[1-radio_freq_active[active_area-1]][active_area-1].get())
+    #     radio_channel_active[1-radio_freq_active[active_area-1]][active_area-1] = True
+    
+    # elif advanced_area_uhf_1_6.get_label_cod1() == "SHIP":
+    #     # freq to ch
+    #     stby_vars[active_area-1].set(ch_vars[1-radio_freq_active[active_area-1]][active_area-1].get())
+    #     radio_channel_active[1-radio_freq_active[active_area-1]][active_area-1] = True
+        
+
+
 
 # Reset all variables to default values
 def set_default():
@@ -191,6 +236,11 @@ def forget_all_pages():
     advanced_page_uhf_1.place_forget()
     advanced_page_uhf_2.place_forget()
     advanced_page_uhf_3.place_forget()
+
+    channels_uhf_1.place_forget()
+    channels_uhf_2.place_forget()
+    channels_uhf_3.place_forget()
+    channels_uhf_4.place_forget()
 
     advanced_page_hf_1.place_forget()
     advanced_page_hf_2.place_forget()
@@ -327,6 +377,15 @@ def update_page_icon():
                 place_page_icon(widget_page_3_3)
 
     if current_level == 3:
+        if current_radio == 1:
+            if current_page == 1:
+                place_page_icon(widget_page_1_4)
+            elif current_page == 2:
+                place_page_icon(widget_page_2_4)
+            elif current_page == 3:
+                place_page_icon(widget_page_3_4)
+            elif current_page == 4:
+                place_page_icon(widget_page_4_4)
         if current_radio == 4:
             if current_page == 1:
                 place_page_icon(widget_page_1_4)
@@ -338,19 +397,19 @@ def update_page_icon():
                 place_page_icon(widget_page_4_4)
 
 def update_precision_radio():
-    global advanced_area_vhf_1_4, vhf_precision_radio, current_radio, radio_freq_active, radio_channel_active, active_vars
+    global advanced_area_vhf_1_4, vhf_precision_radio, current_radio, radio_freq_active, radio_channel_active, active_vars, uhf_precision_radio
 
     if advanced_area_vhf_1_4.get_label_cod1() == "ON":
         if current_level == 1:    
             vhf_precision_radio.place_forget()
             if not "CH" in active_vars[3].get():
                 print("mudar para 600---------------------------------------------")
-                vhf_precision_radio.place(x=688, y=183)
+                vhf_precision_radio.place(x=683, y=257)
                 vhf_precision_radio.lift()
         elif current_level == 2 and current_radio == 4:   
             vhf_precision_radio.place_forget()
             if not "CH" in active_vars[3].get():
-                vhf_precision_radio.place(x=460, y=183)
+                vhf_precision_radio.place(x=455, y=257)
                 vhf_precision_radio.lift()
         elif current_level == 2 and current_level != 4:
             vhf_precision_radio.place_forget()
@@ -358,6 +417,51 @@ def update_precision_radio():
             vhf_precision_radio.place_forget()
     elif advanced_area_vhf_1_4.get_label_cod1() == "OFF":
         vhf_precision_radio.place_forget()
+    
+    if current_level == 1:    
+        hf1_precision_radio.place_forget()
+        hf2_precision_radio.place_forget()
+        if not "CH" in active_vars[1].get():
+            print("mudar para 600---------------------------------------------")
+            hf1_precision_radio.place(x=460, y=307)
+            hf1_precision_radio.lift()
+            hf2_precision_radio.place(x=455, y=382)
+            hf2_precision_radio.lift()        
+    elif current_level == 2 and current_radio == 2:    
+        hf1_precision_radio.place_forget()
+        hf2_precision_radio.place_forget()
+        if not "CH" in active_vars[1].get():
+            print("mudar para 600---------------------------------------------")
+            hf1_precision_radio.place(x=461, y=183)
+            hf1_precision_radio.lift()
+            hf2_precision_radio.place(x=455, y=258)
+            hf2_precision_radio.lift()
+    else:
+        hf1_precision_radio.place_forget()
+        hf2_precision_radio.place_forget()
+
+
+    
+    if advanced_area_uhf_3_6.get_label_cod1() == "ON":
+        if current_level == 1:    
+            uhf_precision_radio.place_forget()
+            if not "CH" in active_vars[0].get():
+                print("mudar para 100---------------------------------------------")
+                uhf_precision_radio.place(x=455, y=257)
+                uhf_precision_radio.lift()
+        elif current_level == 2 and current_radio == 1:   
+            uhf_precision_radio.place_forget()
+            if not "CH" in active_vars[0].get():
+                uhf_precision_radio.place(x=455, y=257)
+                uhf_precision_radio.lift()
+        elif current_level == 2 and current_level != 4:
+            uhf_precision_radio.place_forget()
+        elif current_level == 3:
+            uhf_precision_radio.place_forget()
+    elif advanced_area_uhf_3_6.get_label_cod1() == "OFF":
+        uhf_precision_radio.place_forget()
+
+    
 
 def update_channel_seta():
         global stby_vars
@@ -464,34 +568,56 @@ def update_screen():
                 forget_all_pages()
                 update_page_icon()
                 advanced_page_adf_1.place(x=x_screen, y=y_screen)
-                activate_advanced(1)
-
-        
+                activate_advanced(1)      
 
     if current_level == 3:
         print("agoora")
         
-        if current_radio == 4:
+        if current_radio == 1:
+            print("----radio 1")
             if current_page == 1:
                 forget_all_pages()
                 update_page_icon()
-                channels_vhf_1.place(x=x_screen, y=y_screen)
+                channels_uhf_1.place(x=x_screen, y=y_screen)
                 activate_channel(1)
             if current_page == 2:
                 forget_all_pages()
                 update_page_icon()
-                channels_vhf_2.place(x=x_screen, y=y_screen)
+                channels_uhf_2.place(x=x_screen, y=y_screen)
                 activate_channel(1)
             if current_page == 3:
                 forget_all_pages()
                 update_page_icon()
-                channels_vhf_3.place(x=x_screen, y=y_screen)
+                channels_uhf_3.place(x=x_screen, y=y_screen)
                 activate_channel(1)
             if current_page == 4:
                 forget_all_pages()
                 update_page_icon()
-                channels_vhf_4.place(x=x_screen, y=y_screen)
+                channels_uhf_4.place(x=x_screen, y=y_screen)
                 activate_channel(1)
+        
+        if current_radio == 4:
+            print("----radio 4")
+            if current_page == 1:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_1.place(x=x_screen, y=y_screen)
+                activate_channel(4)
+            if current_page == 2:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_2.place(x=x_screen, y=y_screen)
+                activate_channel(4)
+            if current_page == 3:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_3.place(x=x_screen, y=y_screen)
+                activate_channel(4)
+            if current_page == 4:
+                forget_all_pages()
+                update_page_icon()
+                channels_vhf_4.place(x=x_screen, y=y_screen)
+                activate_channel(4)
 
     else:
         print(f"Else statement. Area: {active_area}, Level: {current_level}, Radio: {current_radio}, Page: {current_page}")
@@ -555,10 +681,10 @@ def turn_on_off():
 # Change the value of the stand by frequency of the active area
 #Controle de frequência
 def change_frequency(is_outer_knob, is_increment):
-    global active_area, zeroise_value, emergency_value, transponder_indicator
-
-    areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
+    global active_area, zeroise_value, emergency_value, transponder_indicator, active_vars, stby_vars, freq_vars, ch1_vars
     ch = False
+    symbol_channel = ""
+    areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
     print("set frequencia")
     if zeroise_value:
         return 
@@ -567,12 +693,45 @@ def change_frequency(is_outer_knob, is_increment):
         
     # Determine which variable to use based on the current active area
         if active_area == 1 and emergency_value != True:
-            delta = 1 if is_outer_knob else 0.05
-            stby_var = uhf_preset
-            dado_var = uhf_preset
-            decimals = 2
-            min_freq = 225.00
-            max_freq = 399.75
+            if radio_freq_active[active_area-1] == 0:
+                if radio_channel_active[1][active_area-1]:
+                    # ajustar ch2
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = ch_vars[1][0]
+                    stby_var = stby_vars[0]
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq2
+                    delta = 1 if is_outer_knob else 0.05
+                    dado_var = freq_vars[1][0]
+                    stby_var = stby_vars[0]
+                    decimals = 2
+                    min_freq = 225.00
+                    max_freq = 399.75
+            else:
+                if radio_channel_active[0][active_area-1]:
+                    # ajustar ch1
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = ch_vars[0][0]
+                    stby_var = stby_vars[0]
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq1
+                    delta = 1 if is_outer_knob else 0.25
+                    dado_var = freq_vars[0][0]
+                    stby_var = stby_vars[0]
+                    decimals = 2
+                    min_freq = 225.00
+                    max_freq = 399.75
+
             # if uhf_advanced_1_5_cod1.get() == "FM":
             #     min_freq_1 = 030.00
             #     max_freq_1 = 087.97
@@ -587,13 +746,50 @@ def change_frequency(is_outer_knob, is_increment):
             #     min_freq_2 = 136.00
             #     max_freq_2 = 155.97
 
+
+
+            
+
         elif active_area == 2 and emergency_value != True:
-            delta = 0.1 if is_outer_knob else 0.001
-            stby_var = hf_preset
-            dado_var = hf_preset
-            decimals = 3
-            min_freq = 2.000
-            max_freq = 29.000
+            if radio_freq_active[active_area-1] == 0:
+                if radio_channel_active[1][active_area-1]:
+                    # ajustar ch2
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = ch_vars[1][1]
+                    stby_var = stby_vars[1]
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq2
+                    delta = 1 if is_outer_knob else 0.001
+                    dado_var = freq_vars[1][1]
+                    stby_var = stby_vars[1]
+                    decimals = 3
+                    min_freq = 2.000
+                    max_freq = 29.000
+            else:
+                if radio_channel_active[0][active_area-1]:
+                    # ajustar ch1
+                    ch = True
+                    delta = 1 if is_outer_knob else 1
+                    dado_var = ch_vars[0][1]
+                    stby_var = stby_vars[1]
+                    decimals = 0
+                    min_freq = 1
+                    max_freq = 20
+                    pass
+                else:
+                    #ajustar freq1
+                    delta = 1 if is_outer_knob else 0.001
+                    dado_var = freq_vars[0][1]
+                    stby_var = stby_vars[1]
+                    decimals = 3
+                    min_freq = 2.000
+                    max_freq = 29.000
+
         elif active_area == 3 and atc_active.get() == "STBY" and emergency_value != True:
             if is_outer_knob:
                 if is_increment:
@@ -648,8 +844,8 @@ def change_frequency(is_outer_knob, is_increment):
                     # ajustar ch2
                     ch = True
                     delta = 1 if is_outer_knob else 1
-                    dado_var = vhf_ch2
-                    stby_var = vhf_preset
+                    dado_var = ch_vars[1][3]
+                    stby_var = stby_vars[3]
                     decimals = 0
                     min_freq = 1
                     max_freq = 20
@@ -657,8 +853,8 @@ def change_frequency(is_outer_knob, is_increment):
                 else:
                     #ajustar freq2
                     delta = 1 if is_outer_knob else 0.25
-                    dado_var = vhf_freq2
-                    stby_var = vhf_preset
+                    dado_var = freq_vars[1][3]
+                    stby_var = stby_vars[3]
                     decimals = 2
                     min_freq = 118.00
                     max_freq = 151.80
@@ -667,8 +863,8 @@ def change_frequency(is_outer_knob, is_increment):
                     # ajustar ch1
                     ch = True
                     delta = 1 if is_outer_knob else 1
-                    dado_var = vhf_ch1
-                    stby_var = vhf_preset
+                    dado_var = ch_vars[0][3]
+                    stby_var = stby_vars[3]
                     decimals = 0
                     min_freq = 1
                     max_freq = 20
@@ -676,8 +872,8 @@ def change_frequency(is_outer_knob, is_increment):
                 else:
                     #ajustar freq1
                     delta = 1 if is_outer_knob else 0.25
-                    dado_var = vhf_freq1
-                    stby_var = vhf_preset
+                    dado_var = freq_vars[0][3]
+                    stby_var = stby_vars[3]
                     decimals = 2
                     min_freq = 118.00
                     max_freq = 151.80
@@ -704,44 +900,101 @@ def change_frequency(is_outer_knob, is_increment):
         else:
             # Default case if no active area is matched
             return
+        
+        
+        if ch:
 
-    if ch:
+            current_value = int(stby_var.get().replace("CH", ""))
+            new_value = current_value + delta if is_increment else current_value - delta
 
-        current_value = int(stby_var.get().replace("CH", ""))
-        new_value = current_value + delta if is_increment else current_value - delta
+            if new_value > max_freq:
+                new_value = min_freq
+            elif new_value < min_freq:
+                new_value = max_freq
 
-        if new_value > max_freq:
-            new_value = min_freq
-        elif new_value < min_freq:
-            new_value = max_freq
+            # Format the new value with the specified number of decimal places
 
-        # Format the new value with the specified number of decimal places
+            formatted_value = f"CH{new_value:02d}"
 
-        formatted_value = f"CH{new_value:02d}"
+            stby_var.set(formatted_value)
+            dado_var.set(formatted_value)
+            areas[active_area - 1].update_labels()
+        else:
+            current_value = float(stby_var.get())
+            new_value = current_value + delta if is_increment else current_value - delta
 
-        stby_var.set(formatted_value)
-        dado_var.set(formatted_value)
-        areas[active_area - 1].update_labels()
-    else:
-        current_value = float(stby_var.get())
-        new_value = current_value + delta if is_increment else current_value - delta
+            if new_value > max_freq:
+                new_value = min_freq
+            elif new_value < min_freq:
+                new_value = max_freq
+            # if new_value > max_freq_1:
+            #     new_value = min_freq_1
+            # elif new_value < min_freq:
+            #     new_value = max_freq_1
 
-        if new_value > max_freq:
-            new_value = min_freq
-        elif new_value < min_freq:
-            new_value = max_freq
-        # if new_value > max_freq_1:
-        #     new_value = min_freq_1
-        # elif new_value < min_freq:
-        #     new_value = max_freq_1
+            # Format the new value with the specified number of decimal places
 
-        # Format the new value with the specified number of decimal places
+            formatted_value = f"{new_value:.{decimals}f}".zfill(6)
 
-        formatted_value = f"{new_value:.{decimals}f}"
+            stby_var.set(formatted_value)
+            dado_var.set(formatted_value)
+            areas[active_area - 1].update_labels()
 
-        stby_var.set(formatted_value)
-        dado_var.set(formatted_value)
-        areas[active_area - 1].update_labels()
+        #     if "CH" in stby_var.get():
+        #         symbol_channel = "CH"
+        #         current_value = int(stby_var.get().replace("CH", ""))
+        #     elif "C" in stby_var.get():
+        #         symbol_channel = "C"
+        #         current_value = int(stby_var.get().replace("⚓", "").replace("C", ""))
+        #     elif "S" in stby_var.get():
+        #         symbol_channel = "S"
+        #         current_value = int(stby_var.get().replace("⚓", "").replace("S", ""))
+        #     else:
+        #         current_value = float(stby_var.get())
+                
+        #     new_value = current_value + delta if is_increment else current_value - delta
+
+        #     if new_value > max_freq:
+        #         new_value = min_freq
+        #     elif new_value < min_freq:
+        #         new_value = max_freq
+
+        #     # Format the new value with the specified number of decimal places
+
+        #     if symbol_channel == "":
+                
+        #         formatted_value = f"{new_value:.{decimals}f}"
+
+        #     if symbol_channel == "CH":
+        #         formatted_value = f"CH{int(new_value):02d}"
+        #     if symbol_channel == "C":
+        #         formatted_value = f"⚓{int(new_value):02d}C"
+        #     if symbol_channel == "S":
+        #         formatted_value = f"⚓{int(new_value):02d}S"
+
+        #     stby_var.set(formatted_value)
+        #     dado_var.set(formatted_value)
+        #     areas[active_area - 1].update_labels()
+        # else:
+        #     current_value = float(stby_var.get())
+        #     new_value = current_value + delta if is_increment else current_value - delta
+
+        #     if new_value > max_freq:
+        #         new_value = min_freq
+        #     elif new_value < min_freq:
+        #         new_value = max_freq
+        #     # if new_value > max_freq_1:
+        #     #     new_value = min_freq_1
+        #     # elif new_value < min_freq:
+        #     #     new_value = max_freq_1
+
+        #     # Format the new value with the specified number of decimal places
+
+        #     formatted_value = f"{new_value:.{decimals}f}"
+
+        #     stby_var.set(formatted_value)
+        #     dado_var.set(formatted_value)
+        #     areas[active_area - 1].update_labels()
 
 
     if current_level == 2:
@@ -859,156 +1112,308 @@ def change_frequency(is_outer_knob, is_increment):
         areas[active_area - 1].update_labels()
 
     if current_level == 3:
-        if current_page == 1:
-            if active_area == 1:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_1
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 2:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_2
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 3:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_3
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 4:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_4
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 5:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_5
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 6:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_6
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-        if current_page == 2:
-            if active_area == 1:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_7
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 2:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_8
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 3:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_9
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 4:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_10
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 5:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_11
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 6:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_12
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-        if current_page == 3:
-            if active_area == 1:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_13
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 2:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_14
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 3:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_15
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 4:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_16
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 5:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_17
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 6:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_18
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-        if current_page == 5:
-            if active_area == 1:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_19
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            if active_area == 2:
-                delta = 1 if is_outer_knob else 0.05
-                current_channel = channel_vhf_20
-                decimals = 2
-                min_freq = 118.00
-                max_freq = 150.80
-            # if active_area == 3:
-            #     delta = 1 if is_outer_knob else 0.05
-            #     current_channel = channel_vhf_3
-            #     decimals = 2
-            #     min_freq = 118.00
-            #     max_freq = 150.80
-            # if active_area == 4:
-            #     delta = 1 if is_outer_knob else 0.05
-            #     current_channel = channel_vhf_4
-            #     decimals = 2
-            #     min_freq = 118.00
-            #     max_freq = 150.80
-            # if active_area == 5:
-            #     delta = 1 if is_outer_knob else 0.05
-            #     current_channel = channel_vhf_5
-            #     decimals = 2
-            #     min_freq = 118.00
-            #     max_freq = 150.80
-            # if active_area == 6:
-            #     delta = 1 if is_outer_knob else 0.05
-            #     current_channel = channel_vhf_6
-            #     decimals = 2
-            #     min_freq = 118.00
-            #     max_freq = 150.80
 
-        
+        if current_radio == 1:
+            if current_page == 1:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_1
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_2
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_3
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_4
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_5
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_6
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 2:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_7
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_8
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_9
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_10
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_11
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_12
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 3:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_13
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_14
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_15
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_16
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_17
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_18
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 4:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_19
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_uhf_20
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                # if active_area == 3:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_uhf_3
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 4:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_uhf_4
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 5:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_uhf_5
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 6:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_uhf_6
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+
+        if current_radio == 4:
+            if current_page == 1:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_1
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_2
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_3
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_4
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_5
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_6
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 2:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_7
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_8
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_9
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_10
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_11
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_12
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 3:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_13
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_14
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 3:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_15
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 4:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_16
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 5:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_17
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 6:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_18
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+            if current_page == 4:
+                if active_area == 1:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_19
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                if active_area == 2:
+                    delta = 1 if is_outer_knob else 0.05
+                    current_channel = channel_vhf_20
+                    decimals = 2
+                    min_freq = 118.00
+                    max_freq = 150.80
+                # if active_area == 3:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_vhf_3
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 4:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_vhf_4
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 5:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_vhf_5
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+                # if active_area == 6:
+                #     delta = 1 if is_outer_knob else 0.05
+                #     current_channel = channel_vhf_6
+                #     decimals = 2
+                #     min_freq = 118.00
+                #     max_freq = 150.80
+
+
         current_value = float(current_channel.get())
         new_value = current_value + delta if is_increment else current_value - delta
 
@@ -1156,13 +1561,13 @@ def activate_channel(channel_number):
     
     if current_radio == 1:
         if current_page == 1:
-            areas = [ advanced_area_uhf_1_1, advanced_area_uhf_1_2, advanced_area_uhf_1_3, advanced_area_uhf_1_4, advanced_area_uhf_1_5, advanced_area_uhf_1_6 ]
-
+            areas = [ channels_uhf_1_1, channels_uhf_1_2, channels_uhf_1_3, channels_uhf_1_4, channels_uhf_1_5, channels_uhf_1_6 ]
         if current_page == 2:
-            areas = [ advanced_area_uhf_2_1, advanced_area_uhf_2_2, advanced_area_uhf_2_3, advanced_area_uhf_2_4, advanced_area_uhf_2_5, advanced_area_uhf_2_6 ]
-
+            areas = [ channels_uhf_2_1, channels_uhf_2_2, channels_uhf_2_3, channels_uhf_2_4, channels_uhf_2_5, channels_uhf_2_6 ]
         if current_page == 3:
-            areas = [ advanced_area_uhf_3_1, advanced_area_uhf_3_2, advanced_area_uhf_3_3, advanced_area_uhf_3_4, advanced_area_uhf_3_5, advanced_area_uhf_3_6 ]
+            areas = [ channels_uhf_3_1, channels_uhf_3_2, channels_uhf_3_3, channels_uhf_3_4, channels_uhf_3_5, channels_uhf_3_6 ]
+        if current_page == 4:
+            areas = [ channels_uhf_4_1, channels_uhf_4_2, channels_uhf_4_3, channels_uhf_4_4, channels_uhf_4_5, channels_uhf_4_6 ]
 
     if current_radio == 2:
         if current_page == 1:
@@ -1211,13 +1616,13 @@ def activate_channel(channel_number):
 def deactivate_channel():
     if current_radio == 1:
         if current_page == 1:
-            areas = [ advanced_area_uhf_1_1, advanced_area_uhf_1_2, advanced_area_uhf_1_3, advanced_area_uhf_1_4, advanced_area_uhf_1_5, advanced_area_uhf_1_6 ]
-
+            areas = [ channels_uhf_1_1, channels_uhf_1_2, channels_uhf_1_3, channels_uhf_1_4, channels_uhf_1_5, channels_uhf_1_6 ]
         if current_page == 2:
-            areas = [ advanced_area_uhf_2_1, advanced_area_uhf_2_2, advanced_area_uhf_2_3, advanced_area_uhf_2_4, advanced_area_uhf_2_5, advanced_area_uhf_2_6 ]
-
+            areas = [ channels_uhf_2_1, channels_uhf_2_2, channels_uhf_2_3, channels_uhf_2_4, channels_uhf_2_5, channels_uhf_2_6 ]
         if current_page == 3:
-            areas = [ advanced_area_uhf_3_1, advanced_area_uhf_3_2, advanced_area_uhf_3_3, advanced_area_uhf_3_4, advanced_area_uhf_3_5, advanced_area_uhf_3_6 ]
+            areas = [ channels_uhf_3_1, channels_uhf_3_2, channels_uhf_3_3, channels_uhf_3_4, channels_uhf_3_5, channels_uhf_3_6 ]
+        if current_page == 4:
+            areas = [ channels_uhf_4_1, channels_uhf_4_2, channels_uhf_4_3, channels_uhf_4_4, channels_uhf_4_5, channels_uhf_4_6 ]
 
     if current_radio == 2:
         if current_page == 1:
@@ -1432,31 +1837,35 @@ def key_up3_push():
         print("NÃO TEM PRÓXIMA PAG PARA ACESSAR")
         return
 
-    if current_radio == 1:
+    if current_level == 2:
+        if current_radio == 1:
+            if current_page == 1:
+                current_page = 2
+            elif current_page == 2:
+                current_page = 3 
+            elif current_page == 3:
+                current_page = 1
+        elif current_radio == 2:
+            if current_page == 1:
+                current_page = 2
+            elif current_page == 2:
+                current_page = 3
+            elif current_page == 3:
+                current_page = 1 
+        elif current_radio == 3:
+            pass
+        elif current_radio == 4:
+            pass
+
+    if current_level == 3:      
         if current_page == 1:
             current_page = 2
         elif current_page == 2:
             current_page = 3 
         elif current_page == 3:
-            current_page = 1
-    elif current_radio == 2:
-        if current_page == 1:
-            current_page = 2
-        elif current_page == 2:
-            current_page = 3
-        elif current_page == 3:
-            current_page = 1 
-    elif current_radio == 3:
-        pass
-    elif current_radio == 4:
-        if current_page == 1:
-            current_page = 2
-        elif current_page == 2:
-            current_page = 3
-        elif current_page == 3:
             current_page = 4 
         elif current_page == 4:
-            current_page = 1 
+            current_page = 1
 
     get_advanced_variables()
 
@@ -1479,6 +1888,9 @@ def key_up4_push():
             update_screen()
             return
         
+        print("click active radio --------")
+        
+        print(current_radio)
         current_radio = active_area
         current_level = 2
         current_page = 1
@@ -1499,30 +1911,30 @@ def switch_active_and_preset(active_vars, stby_vars, freq1_vars, freq2_vars, ch1
     if radio_freq_active[idx] == 0:
         if radio_channel_active[0][idx]:
             # ch1 -> stby
-            current_value = ch1_vars[idx].get()
+            current_value = ch_vars[0][idx].get()
         else:
             # freq1 -> stby
-            current_value = freq1_vars[idx].get()
+            current_value = freq_vars[0][idx].get()
 
         if radio_channel_active[1][idx]:
             # ch2 -> active
-            standby_value = ch2_vars[idx].get()
+            standby_value = ch_vars[1][idx].get()
         else:
             # freq2 -> active
-            standby_value = freq2_vars[idx].get()      
+            standby_value = freq_vars[1][idx].get()      
     else:
         if radio_channel_active[0][idx]:
             # ch1 -> active
-            standby_value = ch1_vars[idx].get()
+            standby_value = ch_vars[0][idx].get()
         else:
             # freq1 -> active
-            standby_value = freq1_vars[idx].get()
+            standby_value = freq_vars[0][idx].get()
         if radio_channel_active[1][idx]:
             # ch2 -> stby
-            current_value = ch2_vars[idx].get()
+            current_value = ch_vars[1][idx].get()
         else:
             # freq2 -> stby
-            current_value = freq2_vars[idx].get()
+            current_value = freq_vars[1][idx].get()
 
 
     radio_freq_active[idx] = 1 - radio_freq_active[idx]
@@ -1551,22 +1963,9 @@ def toggle_area(side_key_number):
     global uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
     global uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
     global uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
-    global active_vars, stby_vars
+    global active_vars, stby_vars, freq1_vars, freq2_vars, ch1_vars, ch2_vars
 
     # Mapping variable values
-
-    freq1_vars = [
-        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
-    ]
-    freq2_vars = [
-        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
-    ]
-    ch1_vars = [
-        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
-    ]
-    ch2_vars = [
-        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
-    ]
 
     if active_area < 1 or active_area > 7 or zeroise_value:
         return
@@ -1622,7 +2021,7 @@ def get_next_option(current_value, options):
     return current_value 
 
 def configure_area(side_key_number): 
-    global current_level, active_area, emergency_value, zeroise_value, vhf_precision_radio
+    global current_level, active_area, emergency_value, zeroise_value, vhf_precision_radio, uhf_precision_radio
 
     if active_area < 1 or active_area > 7:
         return
@@ -1661,31 +2060,46 @@ def configure_area(side_key_number):
                     advanced_area_uhf_2_1.set_label_cod1("", "white", "e")
                     advanced_area_uhf_3_1.set_label_cod1("", "white", "e")
                     advanced_area_uhf_1_5.set_label_cod2("AM\nFM", "white", "e")
+                    advanced_area_uhf_1_6_selecao.off_selecao()
                     uhf_active.set("243.00")
                     uhf_preset.set("GUARD")
                 elif advanced_area_uhf_1_3.get_label_cod1() == "243":
                     advanced_area_uhf_1_3.set_label_cod1("121", "cyan", "w")            
-                    advanced_area_uhf_1_5.set_label_cod2("AM\nFM", "white", "e")
+                    advanced_area_uhf_1_5.set_label_cod2("", "white", "e")
+                    advanced_area_uhf_1_5.set_label_cod1("AM", "cyan", "e")
                     uhf_active.set("121.00")
                     uhf_preset.set("GUARD")
                 elif advanced_area_uhf_1_3.get_label_cod1() == "121":
                     advanced_area_uhf_1_3.set_label_cod1("T/R", "cyan", "w")            
+                    advanced_area_uhf_1_6_selecao.on_selecao()
                     uhf_active.set("120.15")
                     uhf_preset.set("118.15")
-
+                    if advanced_area_uhf_1_6.get_label_cod1() == "OFF":
+                        advanced_area_uhf_1_5.set_label_cod1("AM", "cyan", "e")
+                    else: 
+                        advanced_area_uhf_1_5.set_label_cod1("FM", "cyan", "e")
 
             if active_area == 4:
                 if advanced_area_uhf_1_4.get_label_cod1() == "OFF":
                     advanced_area_uhf_1_4.set_label_cod1("ON", "cyan", "e")
                 else:
                     advanced_area_uhf_1_4.set_label_cod1("OFF", "cyan", "e")
+                
             if active_area == 5:
-                if advanced_area_uhf_1_5.get_label_cod1() == "AM":
+                if advanced_area_uhf_1_5.get_label_cod1() == "AM" and advanced_area_uhf_1_3.get_label_cod1() == "243":
                     advanced_area_uhf_1_5.set_label_cod1("FM", "cyan", "e")
-                else:
+                elif advanced_area_uhf_1_5.get_label_cod1() == "FM" and advanced_area_uhf_1_3.get_label_cod1() == "243":
                     advanced_area_uhf_1_5.set_label_cod1("AM", "cyan", "e")
             if active_area == 6:
-                advanced_area_uhf_1_6_selecao.set_selecao()
+                if advanced_area_uhf_1_3.get_label_cod1() == "T/R" or advanced_area_uhf_1_3.get_label_cod1() == "TR+G":
+                    advanced_area_uhf_1_6_selecao.set_selecao()
+                    print("--------Set nível")
+
+                print(advanced_area_uhf_1_3.get_label_cod1())
+                # print(radio_freq_active)
+                # toggle_frequency_cst_ship()
+                # print(advanced_area_uhf_1_6.get_label_cod1())
+                # stby_vars[0].set(ch_vars[1][0].get())
         
         if current_page == 2:
             if active_area == 2:
@@ -1725,7 +2139,8 @@ def configure_area(side_key_number):
             if active_area == 2:
                 pass
             if active_area == 3:
-                pass
+                current_level = 3
+                update_screen()
             if active_area == 4:
                 pass
             if active_area == 5:
@@ -1735,9 +2150,11 @@ def configure_area(side_key_number):
                     advanced_area_uhf_3_6.set_label_cod1("ON", "cyan", "e")
                 else:
                     advanced_area_uhf_3_6.set_label_cod1("OFF", "cyan", "e")
+                update_precision_radio() 
 
     
     if current_radio == 2:
+        print("aquiaqui")
         
         if current_page == 1:
             if active_area == 2:
@@ -2744,6 +3161,7 @@ class SetaNivel3:
             self.triangulos.append(triangulo)
 
         self.set_selecao()
+
     
     def set_selecao(self):
         
@@ -2757,9 +3175,12 @@ class SetaNivel3:
             # uhf_active.set("120.15")
             # uhf_preset.set("118.15")
             advanced_area_uhf_1_6.set_label_cod1("OFF", "cyan", "e")
+            advanced_area_uhf_1_5.set_label_cod1("AM", "cyan", "e")
         if self.nivel == 2:
             # main_area_1.set_label_cod1("+G", "white", "e")
             advanced_area_uhf_1_6.set_label_cod1("CST", "cyan", "e")
+            advanced_area_uhf_1_5.set_label_cod1("FM", "cyan", "e")
+
         if self.nivel == 3:
             # main_area_1.set_label_cod1("", "white", "e")
             advanced_area_uhf_1_6.set_label_cod1("SHIP", "cyan", "e")
@@ -2776,6 +3197,16 @@ class SetaNivel3:
             self.triangulos[self.nivel - 1], 
             outline=self.cores[self.nivel - 1]
         )
+
+    def on_selecao(self):
+        self.canvas.itemconfig(
+            self.triangulos[self.nivel - 1], 
+            outline=self.cores[self.nivel - 1]
+        )
+
+    def off_selecao(self):
+        for i in range(3):
+            self.canvas.itemconfig(self.triangulos[i], outline='black')
     
     def get_nivel(self):
         """Retorna o nível atual"""
@@ -3043,7 +3474,10 @@ widget_page_2_4 = Label(root, image=page_2_4, background="#000000")
 widget_page_3_4 = Label(root, image=page_3_4, background="#000000")
 widget_page_4_4 = Label(root, image=page_4_4, background="#000000")
 
-vhf_precision_radio = Label(root, text="0", font=Font(family='Miriam Mono CLM', size=20, weight='bold'), fg="cyan", bg="black")
+uhf_precision_radio = Label(root, text="0", font=Font(family='Miriam Mono CLM', size=18, weight='bold'), fg="white", bg="black")
+hf1_precision_radio = Label(root, text="0", font=Font(family='Miriam Mono CLM', size=20, weight='bold'), fg="cyan", bg="black")
+hf2_precision_radio = Label(root, text="0", font=Font(family='Miriam Mono CLM', size=18, weight='bold'), fg="white", bg="black")
+vhf_precision_radio = Label(root, text="0", font=Font(family='Miriam Mono CLM', size=18, weight='bold'), fg="white", bg="black")
 
 
 # Create Pages to be shown in  the screen
@@ -3088,6 +3522,38 @@ advanced_page_uhf_2 = Frame(
 )
 
 advanced_page_uhf_3 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_uhf_1 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_uhf_2 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_uhf_3 = Frame(
+    root,
+    width=screen_width,
+    height=screen_height,
+    pady=pady_screen,
+    bg="black",
+)
+
+channels_uhf_4 = Frame(
     root,
     width=screen_width,
     height=screen_height,
@@ -3240,7 +3706,7 @@ uhf_preset = StringVar(value="118.15")
 uhf_freq1 = StringVar(value="139.50")  
 uhf_freq2 = StringVar(value="136.00")
 uhf_ch1 = StringVar(value="01")
-uhf_ch2 = StringVar(value="02")
+uhf_ch2 = StringVar(value="01")
 uhf_cod0 = StringVar(value="")
 uhf_cod1 = StringVar(value="")
 uhf_cod2 = StringVar(value="")
@@ -3308,15 +3774,36 @@ uhf_advanced_3_6_cod1 = StringVar(value="")
 uhf_advanced_3_6_cod2 = StringVar(value="")
 uhf_advanced_3_6_cod3 = StringVar(value="")
 
+channel_uhf_1 = StringVar(value="140.00")
+channel_uhf_2 = StringVar(value="140.00")
+channel_uhf_3 = StringVar(value="140.00")
+channel_uhf_4 = StringVar(value="140.00")
+channel_uhf_5 = StringVar(value="140.00")
+channel_uhf_6 = StringVar(value="140.00")
+channel_uhf_7 = StringVar(value="140.00")
+channel_uhf_8 = StringVar(value="140.00")
+channel_uhf_9 = StringVar(value="140.00")
+channel_uhf_10 = StringVar(value="140.00")
+channel_uhf_11 = StringVar(value="140.00")
+channel_uhf_12 = StringVar(value="140.00")
+channel_uhf_13 = StringVar(value="140.00")
+channel_uhf_14 = StringVar(value="140.00")
+channel_uhf_15 = StringVar(value="140.00")
+channel_uhf_16 = StringVar(value="140.00")
+channel_uhf_17 = StringVar(value="140.00")
+channel_uhf_18 = StringVar(value="140.00")
+channel_uhf_19 = StringVar(value="140.00")
+channel_uhf_20 = StringVar(value="140.00")
+
 #------------------------------------------------
 hf_ind = StringVar(value="H\nF")
 hf_cod0 = StringVar(value="")
 hf_cod1 = StringVar(value="")
 hf_cod2 = StringVar(value="")
-hf_active = StringVar(value="03.601")
+hf_active = StringVar(value="03.600")
 hf_preset = StringVar(value="02.000")
-hf_freq1 = StringVar(value="139.50")  
-hf_freq2 = StringVar(value="136.00")
+hf_freq1 = StringVar(value="03.600")  
+hf_freq2 = StringVar(value="02.000")
 hf_ch1 = StringVar(value="01")
 hf_ch2 = StringVar(value="02")
 #---------- hf ADVANCED -----------------------
@@ -3542,10 +4029,29 @@ active_vars = [
 stby_vars = [
     uhf_preset, hf_preset, atc_preset, vhf_preset, vor_preset, adf_preset
 ]
+freq_vars = [[
+        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    ], [
+        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    ]]
+ch_vars = [[
+        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    ], [
+        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    ]]
+freq1_vars = [
+        uhf_freq1, hf_freq1, atc_freq1, vhf_freq1, vor_freq1, adf_freq1
+    ]
+freq2_vars = [
+        uhf_freq2, hf_freq2, atc_freq2, vhf_freq2, vor_freq2, adf_freq2
+    ]
+ch1_vars = [
+        uhf_ch1, hf_ch1, atc_ch1, vhf_ch1, vor_ch1, adf_ch1
+    ]
+ch2_vars = [
+        uhf_ch2, hf_ch2, atc_ch2, vhf_ch2, vor_ch2, adf_ch2
+    ]
 #--------------------------------------------------------
-
-
-
 
 uhf_sql_arrow_position = IntVar(value=0)
 uhf_mode_position = IntVar(value=0)
@@ -3674,6 +4180,19 @@ advanced_page_uhf_2.rowconfigure((0, 1, 2, 3), weight=1)
 advanced_page_uhf_3.columnconfigure((0, 1), weight=1)
 advanced_page_uhf_3.rowconfigure((0, 1, 2, 3), weight=1)
 
+
+channels_uhf_1.columnconfigure((0, 1), weight=1)
+channels_uhf_1.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_uhf_2.columnconfigure((0, 1), weight=1)
+channels_uhf_2.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_uhf_3.columnconfigure((0, 1), weight=1)
+channels_uhf_3.rowconfigure((0, 1, 2, 3), weight=1)
+
+channels_uhf_4.columnconfigure((0, 1), weight=1)
+channels_uhf_4.rowconfigure((0, 1, 2, 3), weight=1)
+
 advanced_page_hf_1.columnconfigure((0, 1), weight=1)
 advanced_page_hf_1.rowconfigure((0, 1, 2, 3), weight=1)
 
@@ -3760,13 +4279,42 @@ advanced_area_uhf_3_1 = Main_box(advanced_page_uhf_3, uhf_ind, uhf_cod0, uhf_cod
 advanced_area_uhf_3_1.set_label_cod2("PT", "white", "center")
 advanced_area_uhf_3_2 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_2_cod0, uhf_advanced_3_2_cod1, uhf_advanced_3_2_cod2, uhf_advanced_3_2_cod3,  1, 2, 'nsew', 'nsew', "gray", 0)
 advanced_area_uhf_3_3 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_3_cod0, uhf_advanced_3_3_cod1, uhf_advanced_3_3_cod2, uhf_advanced_3_3_cod3,  2, 1, 'nsew', 'nsew', "gray", 0)
-advanced_area_uhf_3_3.set_label_cod0("CH", "white", "w")
+advanced_area_uhf_3_3_imagem = Imagem(advanced_area_uhf_3_3, 55, 38, "imagens/PAG_4.png", 32, 41)
+advanced_area_uhf_3_3.set_label_cod0("CH\x20\x20", "yellow", "w")
 advanced_area_uhf_3_4 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_4_cod2, uhf_advanced_3_4_cod3, uhf_advanced_3_4_cod0, uhf_advanced_3_4_cod1,  1, 1, 'nsew', 'nsew', "gray", 1)
 advanced_area_uhf_3_5 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_5_cod2, uhf_advanced_3_5_cod3, uhf_advanced_3_5_cod0, uhf_advanced_3_5_cod1,  2, 1, 'nsew', 'nsew', "gray", 1)
 advanced_area_uhf_3_5.set_label_cod0("TEST", "white", "e")
 advanced_area_uhf_3_6 = Advanced_box(advanced_page_uhf_3, uhf_advanced_3_6_cod2, uhf_advanced_3_6_cod3, uhf_advanced_3_6_cod0, uhf_advanced_3_6_cod1,  1, 2, 'nsew', 'nsew', "gray", 1)
 advanced_area_uhf_3_6.set_label_cod0("8.33", "white", "e")
 advanced_area_uhf_3_6.set_label_cod1("OFF", "cyan", "e")
+
+channels_uhf_1_1 = Channels(channels_uhf_1, StringVar(value="01"), channel_uhf_1)
+channels_uhf_1_2 = Channels(channels_uhf_1, StringVar(value="02"), channel_uhf_2)
+channels_uhf_1_3 = Channels(channels_uhf_1, StringVar(value="03"), channel_uhf_3)
+channels_uhf_1_4 = Channels(channels_uhf_1, StringVar(value="04"), channel_uhf_4)
+channels_uhf_1_5 = Channels(channels_uhf_1, StringVar(value="05"), channel_uhf_5)
+channels_uhf_1_6 = Channels(channels_uhf_1, StringVar(value="06"), channel_uhf_6)
+
+channels_uhf_2_1 = Channels(channels_uhf_2, StringVar(value="07"), channel_uhf_7)
+channels_uhf_2_2 = Channels(channels_uhf_2, StringVar(value="08"), channel_uhf_8)
+channels_uhf_2_3 = Channels(channels_uhf_2, StringVar(value="09"), channel_uhf_9)
+channels_uhf_2_4 = Channels(channels_uhf_2, StringVar(value="10"), channel_uhf_10)
+channels_uhf_2_5 = Channels(channels_uhf_2, StringVar(value="11"), channel_uhf_11)
+channels_uhf_2_6 = Channels(channels_uhf_2, StringVar(value="12"), channel_uhf_12)
+
+channels_uhf_3_1 = Channels(channels_uhf_3, StringVar(value="13"), channel_uhf_13)
+channels_uhf_3_2 = Channels(channels_uhf_3, StringVar(value="14"), channel_uhf_14)
+channels_uhf_3_3 = Channels(channels_uhf_3, StringVar(value="15"), channel_uhf_15)
+channels_uhf_3_4 = Channels(channels_uhf_3, StringVar(value="16"), channel_uhf_16)
+channels_uhf_3_5 = Channels(channels_uhf_3, StringVar(value="17"), channel_uhf_17)
+channels_uhf_3_6 = Channels(channels_uhf_3, StringVar(value="18"), channel_uhf_18)
+
+channels_uhf_4_1 = Channels(channels_uhf_4, StringVar(value="19"), channel_uhf_19)
+channels_uhf_4_2 = Channels(channels_uhf_4, StringVar(value="20"), channel_uhf_20)
+channels_uhf_4_3 = Channels(channels_uhf_4, StringVar(value=""), StringVar(value=""))
+channels_uhf_4_4 = Channels(channels_uhf_4, StringVar(value=""), StringVar(value=""))
+channels_uhf_4_5 = Channels(channels_uhf_4, StringVar(value=""), StringVar(value=""))
+channels_uhf_4_6 = Channels(channels_uhf_4, StringVar(value=""), StringVar(value=""))
 
 #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -3964,6 +4512,8 @@ main_area_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 main_area_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 main_area_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
 
+areas = [ main_area_1, main_area_2, main_area_3, main_area_4, main_area_5, main_area_6 ]
+
 advanced_area_uhf_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_uhf_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_uhf_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
@@ -3984,6 +4534,34 @@ advanced_area_uhf_3_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_uhf_3_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_uhf_3_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
 advanced_area_uhf_3_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_uhf_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_1_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_1_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_1_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_1_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_uhf_2_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_2_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_2_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_2_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_2_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_2_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_uhf_3_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_3_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_3_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_3_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_3_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_3_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
+
+channels_uhf_4_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_4_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_4_3.grid(row=2, column=0, sticky='nsew', padx=2, pady=2)
+channels_uhf_4_4.grid(row=0, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_4_5.grid(row=1, column=1, sticky='nsew', padx=2, pady=2)
+channels_uhf_4_6.grid(row=2, column=1, sticky='nsew', padx=2, pady=2)
 
 advanced_area_hf_1_1.grid(row=0, column=0, sticky='nsew', padx=2, pady=2)
 advanced_area_hf_1_2.grid(row=1, column=0, sticky='nsew', padx=2, pady=2)
